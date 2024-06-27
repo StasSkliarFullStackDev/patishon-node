@@ -1,0 +1,169 @@
+<html>
+
+<head>
+    <style>
+        #test {
+            width: 100%;
+            height: 100vh;
+            /* border: 1px solid red; */
+            margin: 0px auto;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+        }
+
+        body {
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="test">
+        <canvas id="DemoCanvas" width="1000" height="500">
+
+
+        </canvas>
+    </div>
+    <script>
+        var canvas = document.getElementById('DemoCanvas');
+        if (canvas.getContext) {
+            var context = canvas.getContext('2d');
+
+            context.lineWidth = 7;
+            context.beginPath();
+            context.moveTo(218, 22);
+            context.lineTo(218, 400);
+            context.stroke();
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(230, 22);
+            context.lineTo(230, 400);
+            context.stroke();
+
+            context.rect(235, 28, 100, 370);
+            context.fillStyle = "#c4e6f4";
+            context.fill();
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(340, 28);
+            context.lineTo(340, 400);
+            context.stroke();
+
+            context.rect(345, 28, 103, 370);
+            context.fillStyle = "#c4e6f4";
+            context.fill();
+
+            context.lineWidth = 7;
+            context.beginPath();
+            context.moveTo(455, 20);
+            context.lineTo(455, 400);
+            context.stroke();
+
+            context.lineWidth = 7;
+            context.beginPath();
+            context.moveTo(451, 20);
+            context.lineTo(594, 20);
+            context.stroke();
+
+            context.lineWidth = 7;
+            context.beginPath();
+            context.moveTo(215, 9);
+            context.lineTo(830, 9);
+            context.stroke();
+
+
+            context.lineWidth = 7;
+            context.beginPath();
+            context.moveTo(590, 20);
+            context.lineTo(590, 400);
+            context.stroke();
+
+            context.rect(596, 28, 104, 370);
+            context.fillStyle = "#c4e6f4";
+            context.fill();
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(705, 28);
+            context.lineTo(705, 400);
+            context.stroke();
+
+            context.rect(710, 28, 100, 370);
+            context.fillStyle = "#c4e6f4";
+            context.fill();
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(815, 22);
+            context.lineTo(815, 400);
+            context.stroke();
+
+            context.lineWidth = 7;
+            context.beginPath();
+            context.moveTo(827, 22);
+            context.lineTo(827, 400);
+            context.stroke();
+
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(235, 405);
+            context.lineTo(330, 405);
+            context.stroke();
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(346, 405);
+            context.lineTo(445, 405);
+            context.stroke();
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(235, 415);
+            context.lineTo(445, 415);
+            context.stroke();
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(600, 405);
+            context.lineTo(700, 405);
+            context.stroke();
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(710, 405);
+            context.lineTo(810, 405);
+            context.stroke();
+
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(600, 415);
+            context.lineTo(810, 415);
+            context.stroke();
+
+
+            // context.strokeStyle = 'yellow'
+
+            // context.lineWidth = 6;
+            // context.beginPath();
+            // context.moveTo(1000, 0);
+            // context.lineTo(0, 500);
+            // context.stroke();
+
+            // context.lineWidth = 6;
+            // context.beginPath();
+            // context.moveTo(0, 0);
+            // context.lineTo(1000, 500);
+            // context.stroke();
+
+
+        }
+    </script>
+</body>
+
+</html>
