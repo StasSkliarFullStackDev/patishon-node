@@ -2,7 +2,6 @@ const fs = require('fs')
 const { validationResult } = require('express-validator')
 function asyncTryCatchMiddleware(handler) {
     return async (req, res, next) => {
-        console.log(req)
         const OBJECT = Object.assign({});
         OBJECT.BODY = req.body;
         OBJECT.METHOD = req.method;
