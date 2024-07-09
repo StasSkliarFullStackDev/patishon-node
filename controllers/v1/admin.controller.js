@@ -1744,571 +1744,570 @@ const updateTolerance = async (req, res) => {
 }
 
 // ---------------- To get dimensions & create image and pdf --------------
-const imageAndPdfGenerator = async (req, res) => {
-
-
-    const pdfDataArray = req.body.data
-    const pdfArray = []
-    const clientPdfArray = []
-    const orderId = Math.random().toString(36).substr(2, 10).toUpperCase()
-
-    for (let i = 0; i < pdfDataArray.length; i++) {
-
-        const data = req.body.data[i]
-        const fileName = `public/pdf/${data.name}_${Date.now()}.pdf`
-        const clientFileName = `public/pdf/${data.name}_client_${Date.now()}.pdf`
-
-        const keys = ["product", "price", "frameVarient", "frameType", "roomSize", "partition"]
-        let object = Object.assign({})
-
-        keys.map(i => data[i] ? object[i] = data[i] : null)
-        object['pdf'] = fileName
-        object['clientPdf'] = fileName
-        object['leftPanelSize'] = data?.panels?.left?.size
-        object['rightPanelSize'] = data?.panels?.right?.size
-        object['film'] = data.filmName ? "yes" : "no"
-        object['orderId'] = orderId
-
-        if (data.door) {
-            object['doorGlass'] = data.door.doorGlass
-            object['doorChannel'] = data.door.doorChannel
-            object['doorCategory'] = data.door.doorCategory
-            object['doorHinges'] = data.door.doorHinges
-            object['handleType'] = data.door.handleType
-            object['handleVarient'] = data.door.handleVarient
-        }
-
-        let productDetails = await productSchema.findOne({ productName: data.product.name })
-        if (productDetails) object.product.image = productDetails.productImage
-        let order = await OrderSchema.model(object).save()
-
-        const colorCodes = {
-            headRail: "#7e4f25",
-            default: "#000000",
-            floorRail: "#e30a16",
-            vertivalFramingChannel: "#40b06f",
-            horizontalFramingChannel: "#f39608",
-            panels: "#009fe3",
-            horizontalBars: "#951b81"
-        }
-
-
-        const headers = [
-            {
-                'name': "Part",
-                'prompt': "Part",
-                'width': 100,
-                'align': 'center',
-            },
-            {
-                'name': "Quantity",
-                'prompt': "Quantity",
-                'width': 50,
-                'align': 'center',
-            },
-            {
-                'name': "Measurement",
-                'prompt': "Measurement (mm)",
-                'width': 50,
-                'align': 'center',
-            }
-        ]
-
-        const tolrance = await tolranceSchema.model.findOne()
-
-        const parts = [
-            "Vertical Framing Channel",
-            "Vertical Framing Channel (Door)",
-            "Horizontal Framing Channel (Left)",
-            "Horizontal Framing Channel (Right)",
-            "Horizontal Framing Channel (Door)",
-            "Floor Channel (Left)",
-            "Floor Channel (Right)",
-            "Head Channel",
-            "Horizontal Bars (Left)",
-            "Horizontal Bars (Right)",
-            "Horizontal Bars (Door)",
-            "Horizontal Bars Spacing (Left)",
-            "Horizontal Bars Spacing (Right)"
-        ]
-
-        if (data.door) parts.push("Panels Left", "Panels Right")
-        else parts.push("Panels")
-        parts.push("Door Panel", "Capping Channel", "End Cover Trims", "Hinges", "Handles Hex", "Adjustable Feet", "Insert")
-
-
-        const quantity = [
-            (data.panels.left.count + data.panels.right.count) * 2,
-            (data.door ? 2 : 0),
-            data.panels.left.count * 2,
-            data.panels.right.count * 2,
-            data.door ? 2 : 0,
-            data.panels.left.count > 0 ? 1 : 0,
-            data.panels.right.count > 0 ? 1 : 0,
-            1,
-            data?.panels?.left?.count > 0 ? data.panels.left.horizontalBars * data.panels.left.count * 2 : 0,
-            data?.panels?.right?.count > 0 ? data.panels.right.horizontalBars * data.panels.right.count * 2 : 0,
-            data.door ? data.door.horizontalBars * 2 : 0,
-            " ",
-            " "
-        ]
-
-        if (data.door) quantity.push(data.panels.left.count, data.panels.right.count,)
-        else quantity.push(data.panels.left.count)
-
-        quantity.push(
-            data.door ? 1 : 0,
-            ((data.panels.left.count > 0 ? data.panels.left.count - 1 : 0) + (data.panels.right.count > 0 ? data.panels.right.count - 1 : 0)) * 2,
-            data.product.name == 'Floating' ? 4 : data.product.name == "Fixed to two walls" ? 0 : data.product.name == "Fixed to one wall" ? 2 : 0,
-            data.door && data.door.type == "single" ? 2 : data.door && data.door.type == "double" ? 4 : 0,
-            data.door && data.door.type == "single" ? 2 : data.door && data.door.type == "double" ? 4 : 0,
-            (data.panels.left.count + data.panels.right.count) * 2,
-            (data.panels.left.count + data.panels.right.count) * 2,
-        )
-
-        const measurement = [
-            data.wallHeight - tolrance.verticalFramingChannel,
-            data.door ? (data.door.size - tolrance.doorPanel) : "0",
-            data?.panels?.left?.count > 0 ? data.panels.left.size - tolrance.horizontalFramingChannelLeft : "0",
-            data?.panels?.right?.count > 0 ? data?.panels?.right?.size - tolrance.horizontalFramingChannelRight : "0",
-            data?.door?.size > 0 ? data.door.size - tolrance.horizontalFramingChannelDoor : "0",
-            data?.panels?.left?.count > 0 ? (data.panels.left.size * data.panels.left.count) - tolrance.floorChannelLeft : "0",
-            data?.panels?.right?.count > 0 ? (data.panels.right.size * data.panels.right.count) - tolrance.floorChannelRight : "0",
-            data.wallLength - tolrance.headChannel,
-            data?.panels?.left.count > 0 && data?.panels?.left?.horizontalBars > 0 ? data.panels.left.size - tolrance.horizontalBarsLeft : "0",
-            data?.panels?.right.count > 0 && data?.panels?.right?.horizontalBars > 0 ? data.panels.right.size - tolrance.horizontalBarsRight : "0",
-            data?.door?.horizontalBars > 0 ? data.door.size - tolrance.horizontalBarsDoor : "0",
-            data?.panels?.left.count > 0 && data?.panels?.left?.horizontalBars > 0 ? (data.wallHeight / data?.panels?.left?.horizontalBars) + 1 : "0",
-            data?.panels?.right.count > 0 && data?.panels?.right?.horizontalBars > 0 ? (data.wallHeight / data?.panels?.right?.horizontalBars) + 1 : "0",
-        ]
-
-
-        if (data.door) measurement.push(
-            data?.panels?.left?.count > 0 ? `${(data.panels.left.size - tolrance.leftPanel).toFixed(2)} x ${(data.wallHeight - tolrance.verticalFramingChannel).toFixed(2)}` : "0",
-            data?.panels?.right?.count > 0 ? `${(data.panels.right.size - tolrance.rightPanel).toFixed(2)} x ${(data.wallHeight - tolrance.verticalFramingChannel).toFixed(2)}` : "0"
-        )
-
-        else measurement.push(`${(data.panels.left.size).toFixed(2)} x ${(data.wallHeight - tolrance.verticalFramingChannel).toFixed(2)}`)
-
-        measurement.push(
-            data?.door ? `${(data.door.size - tolrance.doorPanel).toFixed(2)} x ${(data.wallHeight - tolrance.doorPanel).toFixed(2)}` : "0",
-            `${tolrance.cappingChannel}`,
-            `${tolrance.endCoverTrims}`,
-            " ",
-            data.door ? data.door.handleSize : "0",
-            " ",
-            " "
-        )
-
-        const tableData = () => {
-
-            let result = []
-
-            for (let i = 0; i < (data.door ? 20 : 19); i++) {
-
-                result.push({
-                    Part: parts[i],
-                    Quantity: quantity[i].toString(),
-                    Measurement: measurement[i].toString().includes("x") || measurement[i] == " " ? measurement[i] : parseFloat(measurement[i]).toFixed(2)
-                })
-            }
-
-            return result
-        };
-
-        const doc = new jsPDF({ orientation: "landscape" });
-        const pageWidth = doc.internal.pageSize.getWidth() - 30
-        const ratio = 9000 / pageWidth
-        const width = data.wallLength / ratio
-        const extraMarginFromLeftRight = width > 0 ? (pageWidth - width) / 2 : 0
-        const descriptionStartPoint = 40
-        const marginFronLeftRight = 15 + extraMarginFromLeftRight
-        const height = 150
-        const marginFromTop = 25
-        const spaceBeetweenPanels = 2
-        const panelMarginFromHeadrail = 15
-        const panelMarginFromFloorail = 10
-        const railLineWidth = 1
-        const panelLineWidth = 0.8
-        const panelHeight = height - marginFromTop - panelMarginFromHeadrail - panelMarginFromFloorail
-
-        let curretWidth = marginFronLeftRight
-        let leftPanelsEndPoint = curretWidth
-        let rightPanelsStartPoint = curretWidth
-
-        // logo
-        let iamgeData = fs.readFileSync('public/logo/logo.png').toString('base64')
-        doc.addImage(iamgeData, "png", 10, 10, 50, 10)
-
-        // header data
-        doc.setFontSize(10)
-        doc.text(`Order ID`, 225, 15)
-        doc.text(`:`, 250, 15)
-        doc.text(`${orderId}`, 255, 15)
-
-        doc.setFontSize(10)
-        doc.text(`Product Type`, 225, 20)
-        doc.text(`:`, 250, 20)
-        doc.text(`${data.product.name}`, 255, 20)
-
-        // head rail
-        doc.setDrawColor(colorCodes.headRail);
-        doc.setLineWidth(railLineWidth)
-        doc.line(marginFronLeftRight, marginFromTop, width + marginFronLeftRight, marginFromTop)
-
-        // left panels
-        if (data?.panels?.left?.count > 0) {
-
-            let spaceToRemove = (spaceBeetweenPanels * (data.panels.left.count - 1)) / data.panels.left.count
-            let panelSize = (data.panels.left.size / ratio) - spaceToRemove
-
-            for (let i = 0; i < data.panels.left.count; i++) {
-
-                let startPoint = i == 0 ? curretWidth : curretWidth + spaceBeetweenPanels
-                let endPoint = startPoint + panelSize
-                curretWidth = endPoint
-
-                // walls
-                doc.setLineWidth(panelLineWidth)
-                doc.setDrawColor(colorCodes.vertivalFramingChannel);
-                doc.line(startPoint, marginFromTop + panelMarginFromHeadrail, startPoint, height - panelMarginFromFloorail)
-                doc.line(endPoint, marginFromTop + panelMarginFromHeadrail, endPoint, height - panelMarginFromFloorail)
-
-                // top and bottom
-                doc.setLineWidth(panelLineWidth)
-                doc.setDrawColor(colorCodes.horizontalFramingChannel);
-                doc.line(startPoint + 1, marginFromTop + panelMarginFromHeadrail - 1, endPoint - 1, marginFromTop + panelMarginFromHeadrail - 1)
-                doc.line(startPoint + 1, height - panelMarginFromFloorail + 1, endPoint - 1, height - panelMarginFromFloorail + 1)
-
-                // inner rectangle
-                doc.setFillColor(colorCodes.panels);
-                doc.rect(startPoint + 1, marginFromTop + panelMarginFromHeadrail, endPoint - startPoint - 2, height - panelMarginFromFloorail - marginFromTop - panelMarginFromHeadrail, "F")
-
-                // horizontal bars 
-
-                if (data?.panels?.left?.horizontalBars > 0) {
-
-                    let spaceBetweenHorizontalBars = panelHeight / (data.panels.left.horizontalBars + 1)
-                    let currentLinePosition = marginFromTop + panelMarginFromHeadrail
-
-                    for (let j = 0; j < data.panels.left.horizontalBars; j++) {
-
-                        currentLinePosition = currentLinePosition + spaceBetweenHorizontalBars
-
-                        doc.setLineWidth(panelLineWidth)
-                        doc.setDrawColor(colorCodes.horizontalBars);
-                        doc.line(startPoint + 1, currentLinePosition, endPoint - 1, currentLinePosition)
-                    }
-                }
-            }
-
-            leftPanelsEndPoint = curretWidth
-
-            // floor rail for left panels
-
-            doc.setDrawColor(colorCodes.floorRail);
-            doc.setLineWidth(railLineWidth)
-            doc.line(marginFronLeftRight, height, leftPanelsEndPoint, height)
-        }
-
-        // door
-        if (data.door) {
-
-            let spaceToRemove = data.panels.left.count > 0 ? spaceBeetweenPanels : 0
-            let doorSize = (data.door.size / ratio) - spaceToRemove
-
-            let startPoint = data.panels.left.count > 0 ? curretWidth + spaceBeetweenPanels : curretWidth
-            let endPoint = startPoint + doorSize
-            curretWidth = endPoint
-
-            // walls
-            doc.setLineWidth(panelLineWidth)
-            doc.setDrawColor(colorCodes.vertivalFramingChannel);
-            doc.line(startPoint, marginFromTop + panelMarginFromHeadrail, startPoint, height - panelMarginFromFloorail)
-            doc.line(endPoint, marginFromTop + panelMarginFromHeadrail, endPoint, height - panelMarginFromFloorail)
-
-            // top and bottom
-            doc.setLineWidth(panelLineWidth)
-            doc.setDrawColor(colorCodes.horizontalFramingChannel);
-            doc.line(startPoint + 1, marginFromTop + panelMarginFromHeadrail - 1, endPoint - 1, marginFromTop + panelMarginFromHeadrail - 1)
-            doc.line(startPoint + 1, height - panelMarginFromFloorail + 1, endPoint - 1, height - panelMarginFromFloorail + 1)
-
-
-            // inner rectangle
-            doc.setFillColor(colorCodes.panels);
-            doc.rect(startPoint + 1, marginFromTop + panelMarginFromHeadrail, endPoint - startPoint - 2, height - panelMarginFromFloorail - marginFromTop - panelMarginFromHeadrail, "F")
-
-            // horizontal bars 
-
-            if (data?.door?.horizontalBars > 0) {
-
-                let spaceBetweenHorizontalBars = panelHeight / (data.door.horizontalBars + 1)
-                let currentLinePosition = marginFromTop + panelMarginFromHeadrail
-
-                for (let i = 0; i < data.door.horizontalBars; i++) {
-
-                    currentLinePosition = currentLinePosition + spaceBetweenHorizontalBars
-
-                    doc.setLineWidth(panelLineWidth)
-                    doc.setDrawColor(colorCodes.horizontalBars);
-                    doc.line(startPoint + 1, currentLinePosition, endPoint - 1, currentLinePosition)
-                }
-            }
-        }
-
-        // right panels
-        if (data?.panels?.right?.count > 0) {
-
-            let spaceToRemove = (spaceBeetweenPanels * data.panels.right.count) / data.panels.right.count
-            let panelSize = (data.panels.right.size / ratio) - spaceToRemove
-            rightPanelsStartPoint = data.door ? curretWidth + spaceBeetweenPanels : curretWidth
-
-            for (let i = 0; i < data.panels.right.count; i++) {
-
-                let startPoint = data.door ? curretWidth + spaceBeetweenPanels : curretWidth
-                let endPoint = startPoint + panelSize
-                curretWidth = endPoint
-
-                // walls
-                doc.setLineWidth(panelLineWidth)
-                doc.setDrawColor(colorCodes.vertivalFramingChannel);
-                doc.line(startPoint, marginFromTop + panelMarginFromHeadrail, startPoint, height - panelMarginFromFloorail)
-                doc.line(endPoint, marginFromTop + panelMarginFromHeadrail, endPoint, height - panelMarginFromFloorail)
-
-                // top and bottom
-                doc.setLineWidth(panelLineWidth)
-                doc.setDrawColor(colorCodes.horizontalFramingChannel);
-                doc.line(startPoint + 1, marginFromTop + panelMarginFromHeadrail - 1, endPoint - 1, marginFromTop + panelMarginFromHeadrail - 1)
-                doc.line(startPoint + 1, height - panelMarginFromFloorail + 1, endPoint - 1, height - panelMarginFromFloorail + 1)
-
-
-                // inner rectangle
-                doc.setFillColor(colorCodes.panels);
-                doc.rect(startPoint + 1, marginFromTop + panelMarginFromHeadrail, endPoint - startPoint - 2, height - panelMarginFromFloorail - marginFromTop - panelMarginFromHeadrail, "F")
-
-
-
-                // horizontal bars 
-
-                if (data?.panels?.right?.horizontalBars > 0) {
-
-                    let spaceBetweenHorizontalBars = panelHeight / (data.panels.right.horizontalBars + 1)
-                    let currentLinePosition = marginFromTop + panelMarginFromHeadrail
-
-                    for (let j = 0; j < data.panels.right.horizontalBars; j++) {
-
-                        currentLinePosition = currentLinePosition + spaceBetweenHorizontalBars
-
-                        doc.setLineWidth(panelLineWidth)
-                        doc.setDrawColor(colorCodes.horizontalBars);
-                        doc.line(startPoint + 1, currentLinePosition, endPoint - 1, currentLinePosition)
-                    }
-                }
-            }
-
-            // floor rail for right panels
-
-            doc.setDrawColor(colorCodes.floorRail);
-            doc.setLineWidth(railLineWidth)
-            doc.line(rightPanelsStartPoint, height, curretWidth, height)
-        }
-
-        // color declarations
-
-        let descriptionHeight = height + 20
-        let colorBoxHeight = height + 17.5
-        let boxWidth = 3
-        let boxHeight = 3
-
-        doc.setFontSize(10)
-        doc.text("Head Channel", descriptionStartPoint, descriptionHeight)
-        doc.setFillColor(colorCodes.headRail);
-        doc.rect(descriptionStartPoint + 25, colorBoxHeight, boxWidth, boxHeight, "F")
-
-        doc.text("Floor Channel", descriptionStartPoint + 35, descriptionHeight)
-        doc.setFillColor(colorCodes.floorRail);
-        doc.rect(descriptionStartPoint + 60, colorBoxHeight, boxWidth, boxHeight, "F")
-
-        doc.text("Vertical Framing Channel", descriptionStartPoint + 70, descriptionHeight)
-        doc.setFillColor(colorCodes.vertivalFramingChannel);
-        doc.rect(descriptionStartPoint + 112.5, colorBoxHeight, boxWidth, boxHeight, "F")
-
-        doc.text("Horizontal Framing Channel", descriptionStartPoint + 122, descriptionHeight)
-        doc.setFillColor(colorCodes.horizontalFramingChannel);
-        doc.rect(descriptionStartPoint + 169, colorBoxHeight, boxWidth, boxHeight, "F")
-
-        doc.text("Horizontal Bars", descriptionStartPoint + 178, descriptionHeight)
-        doc.setFillColor(colorCodes.horizontalBars);
-        doc.rect(descriptionStartPoint + 205, colorBoxHeight, boxWidth, boxHeight, "F")
-
-        // footer data
-
-        doc.text("Ceiling Height", 15, height + 35)
-        doc.text(":", 42, height + 35)
-        doc.text(`${data.wallHeight}`, 47, height + 35)
-
-        doc.text("Door Category", 15, height + 43)
-        doc.text(":", 42, height + 43)
-        doc.text(`${data.door ? data.door.doorCategory.charAt(0).toUpperCase() + data.door.doorCategory.slice(1) : "N/A"}`, 47, height + 43)
-
-        doc.text("Door Color", 15, height + 51)
-        doc.text(":", 42, height + 51)
-        doc.text(`${data.door ? data.frameColorCode : "N/A"}`, 47, height + 51)
-
-        doc.text("Film Name", 230, height + 35)
-        doc.text(":", 262, height + 35)
-        doc.text(`${data.filmName ? data.filmName : "N/A"}`, 268, height + 35)
-
-        doc.text("Frame Color Code", 230, height + 43)
-        doc.text(":", 262, height + 43)
-        doc.text(`${data.frameColorCode}`, 268, height + 43)
-
-        // table section
-        doc.addPage()
-        doc.setLineWidth(0);
-        doc.setDrawColor(colorCodes.default);
-        doc.table(70, 25, tableData(), headers, { autoSize: false, headerBackgroundColor: "#FFFFFF", fontSize: 9, padding: 2 });
-        doc.save(fileName)
-
-        pdfArray.push(fileName)
-
-        // **********     Client Pdf     **********
-
-        const clientDoc = new jsPDF({ orientation: "landscape" });
-
-        const ClientPdfQuantity = [
-            (data.panels.left.count + data.panels.right.count) * 2,
-            (data.door ? 2 : 0),
-            data.panels.left.count * 2,
-            data.panels.right.count * 2,
-            data.door ? 2 : 0,
-            data.panels.left.count > 0 ? 1 : 0,
-            data.panels.right.count > 0 ? 1 : 0,
-            1,
-            data?.panels?.left?.count > 0 ? data.panels.left.horizontalBars * data.panels.left.count * 2 : 0,
-            data?.panels?.right?.count > 0 ? data.panels.right.horizontalBars * data.panels.right.count * 2 : 0,
-            data.door ? data.door.horizontalBars * 2 : 0,
-            " ",
-            " "
-        ]
-
-        if (data.door) ClientPdfQuantity.push(data.panels.left.count, data.panels.right.count,)
-        else quantity.push(data.panels.left.count)
-
-        ClientPdfQuantity.push(
-            data.door ? 1 : 0,
-            ((data.panels.left.count > 0 ? data.panels.left.count - 1 : 0) + (data.panels.right.count > 0 ? data.panels.right.count - 1 : 0)) * 2,
-            data.product.name == 'Floating' ? 4 : data.product.name == "Fixed to two walls" ? 0 : data.product.name == "Fixed to one wall" ? 2 : 0,
-            data.door && data.door.type == "single" ? 2 : data.door && data.door.type == "double" ? 4 : 0,
-            data.door && data.door.type == "single" ? 2 : data.door && data.door.type == "double" ? 4 : 0,
-            (data.panels.left.count + data.panels.right.count) * 2,
-            (data.panels.left.count + data.panels.right.count) * 2,
-        )
-
-        const ClientPdfMeasurement = [
-            data.wallHeight,
-            data.door ? data.door.size : "0",
-            data?.panels?.left?.count > 0 ? data.panels.left.size : "0",
-            data?.panels?.right?.count > 0 ? data?.panels?.right?.size : "0",
-            data?.door?.size > 0 ? data.door.size : "0",
-            data?.panels?.left?.count > 0 ? data.panels.left.size * data.panels.left.count : "0",
-            data?.panels?.right?.count > 0 ? data.panels.right.size * data.panels.right.count : "0",
-            data.wallLength,
-            data?.panels?.left.count > 0 && data?.panels?.left?.horizontalBars > 0 ? data.panels.left.size : "0",
-            data?.panels?.right.count > 0 && data?.panels?.right?.horizontalBars > 0 ? data.panels.right.size : "0",
-            data?.door?.horizontalBars > 0 ? data.door.size : "0",
-            data?.panels?.left.count > 0 && data?.panels?.left?.horizontalBars > 0 ? (data.wallHeight / data?.panels?.left?.horizontalBars) + 1 : "0",
-            data?.panels?.right.count > 0 && data?.panels?.right?.horizontalBars > 0 ? (data.wallHeight / data?.panels?.right?.horizontalBars) + 1 : "0",
-        ]
-
-
-        if (data.door) ClientPdfMeasurement.push(
-            data?.panels?.left?.count > 0 ? `${data.panels.left.size.toFixed(2)} x ${data.wallHeight.toFixed(2)}` : "0",
-            data?.panels?.right?.count > 0 ? `${data.panels.right.size.toFixed(2)} x ${data.wallHeight.toFixed(2)}` : "0"
-        )
-
-        else ClientPdfMeasurement.push(`${data.panels.left.size.toFixed(2)} x ${data.wallHeight.toFixed(2)}`)
-
-        ClientPdfMeasurement.push(
-            data?.door ? `${data.door.size.toFixed(2)} x ${data.wallHeight.toFixed(2)}` : "0",
-            `${tolrance.cappingChannel}`,
-            `${tolrance.endCoverTrims}`,
-            " ",
-            data.door ? data.door.handleSize : "0",
-            " ",
-            " "
-        )
-
-        const clientTableData = () => {
-
-            let result = []
-
-            for (let i = 0; i < (data.door ? 20 : 19); i++) {
-
-                result.push({
-                    Part: parts[i],
-                    Quantity: ClientPdfQuantity[i].toString(),
-                    Measurement: ClientPdfMeasurement[i].toString().includes("x") || ClientPdfMeasurement[i] == " " ? ClientPdfMeasurement[i] : parseFloat(ClientPdfMeasurement[i]).toFixed(2)
-                })
-            }
-
-            return result
-        };
-
-        // head section
-
-        clientDoc.addImage(iamgeData, "png", 10, 10, 50, 10)
-
-        clientDoc.setFontSize(10)
-        clientDoc.text(`Order ID`, 225, 15)
-        clientDoc.text(`:`, 250, 15)
-        clientDoc.text(`${orderId}`, 255, 15)
-
-        clientDoc.setFontSize(10)
-        clientDoc.text(`Product Type`, 225, 20)
-        clientDoc.text(`:`, 250, 20)
-        clientDoc.text(`${data.product.name}`, 255, 20)
-
-        // main image
-
-        clientDoc.addImage(data.base64, "png", 15, marginFromTop + 5, pageWidth, height - 10)
-
-        // footer data
-
-        clientDoc.text("Ceiling Height", 15, height + 35)
-        clientDoc.text(":", 42, height + 35)
-        clientDoc.text(`${data.wallHeight}`, 47, height + 35)
-
-        clientDoc.text("Door Category", 15, height + 43)
-        clientDoc.text(":", 42, height + 43)
-        clientDoc.text(`${data.door ? data.door.doorCategory.charAt(0).toUpperCase() + data.door.doorCategory.slice(1) : "N/A"}`, 47, height + 43)
-
-        clientDoc.text("Door Color", 15, height + 51)
-        clientDoc.text(":", 42, height + 51)
-        clientDoc.text(`${data.door ? data.frameColorCode : "N/A"}`, 47, height + 51)
-
-        clientDoc.text("Film Name", 230, height + 35)
-        clientDoc.text(":", 262, height + 35)
-        clientDoc.text(`${data.filmName ? data.filmName : "N/A"}`, 268, height + 35)
-
-        clientDoc.text("Frame Color Code", 230, height + 43)
-        clientDoc.text(":", 262, height + 43)
-        clientDoc.text(`${data.frameColorCode}`, 268, height + 43)
-
-        // table section
-
-        clientDoc.addPage()
-        clientDoc.setLineWidth(0);
-        clientDoc.setDrawColor(colorCodes.default);
-        clientDoc.table(70, 25, clientTableData(), headers, { autoSize: false, headerBackgroundColor: "#FFFFFF", fontSize: 9, padding: 2 });
-        clientDoc.save(clientFileName)
-
-        clientPdfArray.push(clientFileName)
-    }
-
-    if (req.body.fromCart) await cartSchema.model.deleteMany()
-    return res.status(200).json(createSuccessResponse("PDF", clientPdfArray))
-}
+// const imageAndPdfGenerator = async (req, res) => {
+//
+//
+//     const pdfDataArray = req.body.data
+//     const pdfArray = []
+//     const clientPdfArray = []
+//     const orderId = Math.random().toString(36).substr(2, 10).toUpperCase()
+//
+//     for (let i = 0; i < pdfDataArray.length; i++) {
+//
+//         const data = req.body.data[i]
+//         const fileName = `public/pdf/${data.name}_${Date.now()}.pdf`
+//         const clientFileName = `public/pdf/${data.name}_client_${Date.now()}.pdf`
+//
+//         const keys = ["product", "price", "frameVarient", "frameType", "roomSize", "partition"]
+//         let object = Object.assign({})
+//
+//         keys.map(i => data[i] ? object[i] = data[i] : null)
+//         object['pdf'] = fileName
+//         object['clientPdf'] = fileName
+//         object['leftPanelSize'] = data?.panels?.left?.size
+//         object['rightPanelSize'] = data?.panels?.right?.size
+//         object['film'] = data.filmName ? "yes" : "no"
+//         object['orderId'] = orderId
+//
+//         if (data.door) {
+//             object['doorGlass'] = data.door.doorGlass
+//             object['doorChannel'] = data.door.doorChannel
+//             object['doorCategory'] = data.door.doorCategory
+//             object['doorHinges'] = data.door.doorHinges
+//             object['handleVarient'] = data.door.handleVarient
+//         }
+//
+//         let productDetails = await productSchema.findOne({ productName: data.product.name })
+//         if (productDetails) object.product.image = productDetails.productImage
+//         let order = await OrderSchema.model(object).save()
+//
+//         const colorCodes = {
+//             headRail: "#7e4f25",
+//             default: "#000000",
+//             floorRail: "#e30a16",
+//             vertivalFramingChannel: "#40b06f",
+//             horizontalFramingChannel: "#f39608",
+//             panels: "#009fe3",
+//             horizontalBars: "#951b81"
+//         }
+//
+//
+//         const headers = [
+//             {
+//                 'name': "Part",
+//                 'prompt': "Part",
+//                 'width': 100,
+//                 'align': 'center',
+//             },
+//             {
+//                 'name': "Quantity",
+//                 'prompt': "Quantity",
+//                 'width': 50,
+//                 'align': 'center',
+//             },
+//             {
+//                 'name': "Measurement",
+//                 'prompt': "Measurement (mm)",
+//                 'width': 50,
+//                 'align': 'center',
+//             }
+//         ]
+//
+//         const tolrance = await tolranceSchema.model.findOne()
+//
+//         const parts = [
+//             "Vertical Framing Channel",
+//             "Vertical Framing Channel (Door)",
+//             "Horizontal Framing Channel (Left)",
+//             "Horizontal Framing Channel (Right)",
+//             "Horizontal Framing Channel (Door)",
+//             "Floor Channel (Left)",
+//             "Floor Channel (Right)",
+//             "Head Channel",
+//             "Horizontal Bars (Left)",
+//             "Horizontal Bars (Right)",
+//             "Horizontal Bars (Door)",
+//             "Horizontal Bars Spacing (Left)",
+//             "Horizontal Bars Spacing (Right)"
+//         ]
+//
+//         if (data.door) parts.push("Panels Left", "Panels Right")
+//         else parts.push("Panels")
+//         parts.push("Door Panel", "Capping Channel", "End Cover Trims", "Hinges", "Handles Hex", "Adjustable Feet", "Insert")
+//
+//
+//         const quantity = [
+//             (data.panels.left.count + data.panels.right.count) * 2,
+//             (data.door ? 2 : 0),
+//             data.panels.left.count * 2,
+//             data.panels.right.count * 2,
+//             data.door ? 2 : 0,
+//             data.panels.left.count > 0 ? 1 : 0,
+//             data.panels.right.count > 0 ? 1 : 0,
+//             1,
+//             data?.panels?.left?.count > 0 ? data.panels.left.horizontalBars * data.panels.left.count * 2 : 0,
+//             data?.panels?.right?.count > 0 ? data.panels.right.horizontalBars * data.panels.right.count * 2 : 0,
+//             data.door ? data.door.horizontalBars * 2 : 0,
+//             " ",
+//             " "
+//         ]
+//
+//         if (data.door) quantity.push(data.panels.left.count, data.panels.right.count,)
+//         else quantity.push(data.panels.left.count)
+//
+//         quantity.push(
+//             data.door ? 1 : 0,
+//             ((data.panels.left.count > 0 ? data.panels.left.count - 1 : 0) + (data.panels.right.count > 0 ? data.panels.right.count - 1 : 0)) * 2,
+//             data.product.name == 'Floating' ? 4 : data.product.name == "Fixed to two walls" ? 0 : data.product.name == "Fixed to one wall" ? 2 : 0,
+//             data.door && data.door.type == "single" ? 2 : data.door && data.door.type == "double" ? 4 : 0,
+//             data.door && data.door.type == "single" ? 2 : data.door && data.door.type == "double" ? 4 : 0,
+//             (data.panels.left.count + data.panels.right.count) * 2,
+//             (data.panels.left.count + data.panels.right.count) * 2,
+//         )
+//
+//         const measurement = [
+//             data.wallHeight - tolrance.verticalFramingChannel,
+//             data.door ? (data.door.size - tolrance.doorPanel) : "0",
+//             data?.panels?.left?.count > 0 ? data.panels.left.size - tolrance.horizontalFramingChannelLeft : "0",
+//             data?.panels?.right?.count > 0 ? data?.panels?.right?.size - tolrance.horizontalFramingChannelRight : "0",
+//             data?.door?.size > 0 ? data.door.size - tolrance.horizontalFramingChannelDoor : "0",
+//             data?.panels?.left?.count > 0 ? (data.panels.left.size * data.panels.left.count) - tolrance.floorChannelLeft : "0",
+//             data?.panels?.right?.count > 0 ? (data.panels.right.size * data.panels.right.count) - tolrance.floorChannelRight : "0",
+//             data.wallLength - tolrance.headChannel,
+//             data?.panels?.left.count > 0 && data?.panels?.left?.horizontalBars > 0 ? data.panels.left.size - tolrance.horizontalBarsLeft : "0",
+//             data?.panels?.right.count > 0 && data?.panels?.right?.horizontalBars > 0 ? data.panels.right.size - tolrance.horizontalBarsRight : "0",
+//             data?.door?.horizontalBars > 0 ? data.door.size - tolrance.horizontalBarsDoor : "0",
+//             data?.panels?.left.count > 0 && data?.panels?.left?.horizontalBars > 0 ? (data.wallHeight / data?.panels?.left?.horizontalBars) + 1 : "0",
+//             data?.panels?.right.count > 0 && data?.panels?.right?.horizontalBars > 0 ? (data.wallHeight / data?.panels?.right?.horizontalBars) + 1 : "0",
+//         ]
+//
+//
+//         if (data.door) measurement.push(
+//             data?.panels?.left?.count > 0 ? `${(data.panels.left.size - tolrance.leftPanel).toFixed(2)} x ${(data.wallHeight - tolrance.verticalFramingChannel).toFixed(2)}` : "0",
+//             data?.panels?.right?.count > 0 ? `${(data.panels.right.size - tolrance.rightPanel).toFixed(2)} x ${(data.wallHeight - tolrance.verticalFramingChannel).toFixed(2)}` : "0"
+//         )
+//
+//         else measurement.push(`${(data.panels.left.size).toFixed(2)} x ${(data.wallHeight - tolrance.verticalFramingChannel).toFixed(2)}`)
+//
+//         measurement.push(
+//             data?.door ? `${(data.door.size - tolrance.doorPanel).toFixed(2)} x ${(data.wallHeight - tolrance.doorPanel).toFixed(2)}` : "0",
+//             `${tolrance.cappingChannel}`,
+//             `${tolrance.endCoverTrims}`,
+//             " ",
+//             data.door ? data.door.handleSize : "0",
+//             " ",
+//             " "
+//         )
+//
+//         const tableData = () => {
+//
+//             let result = []
+//
+//             for (let i = 0; i < (data.door ? 20 : 19); i++) {
+//
+//                 result.push({
+//                     Part: parts[i],
+//                     Quantity: quantity[i].toString(),
+//                     Measurement: measurement[i].toString().includes("x") || measurement[i] == " " ? measurement[i] : parseFloat(measurement[i]).toFixed(2)
+//                 })
+//             }
+//
+//             return result
+//         };
+//
+//         const doc = new jsPDF({ orientation: "landscape" });
+//         const pageWidth = doc.internal.pageSize.getWidth() - 30
+//         const ratio = 9000 / pageWidth
+//         const width = data.wallLength / ratio
+//         const extraMarginFromLeftRight = width > 0 ? (pageWidth - width) / 2 : 0
+//         const descriptionStartPoint = 40
+//         const marginFronLeftRight = 15 + extraMarginFromLeftRight
+//         const height = 150
+//         const marginFromTop = 25
+//         const spaceBeetweenPanels = 2
+//         const panelMarginFromHeadrail = 15
+//         const panelMarginFromFloorail = 10
+//         const railLineWidth = 1
+//         const panelLineWidth = 0.8
+//         const panelHeight = height - marginFromTop - panelMarginFromHeadrail - panelMarginFromFloorail
+//
+//         let curretWidth = marginFronLeftRight
+//         let leftPanelsEndPoint = curretWidth
+//         let rightPanelsStartPoint = curretWidth
+//
+//         // logo
+//         let iamgeData = fs.readFileSync('public/logo/logo.png').toString('base64')
+//         doc.addImage(iamgeData, "png", 10, 10, 50, 10)
+//
+//         // header data
+//         doc.setFontSize(10)
+//         doc.text(`Order ID`, 225, 15)
+//         doc.text(`:`, 250, 15)
+//         doc.text(`${orderId}`, 255, 15)
+//
+//         doc.setFontSize(10)
+//         doc.text(`Product Type`, 225, 20)
+//         doc.text(`:`, 250, 20)
+//         doc.text(`${data.product.name}`, 255, 20)
+//
+//         // head rail
+//         doc.setDrawColor(colorCodes.headRail);
+//         doc.setLineWidth(railLineWidth)
+//         doc.line(marginFronLeftRight, marginFromTop, width + marginFronLeftRight, marginFromTop)
+//
+//         // left panels
+//         if (data?.panels?.left?.count > 0) {
+//
+//             let spaceToRemove = (spaceBeetweenPanels * (data.panels.left.count - 1)) / data.panels.left.count
+//             let panelSize = (data.panels.left.size / ratio) - spaceToRemove
+//
+//             for (let i = 0; i < data.panels.left.count; i++) {
+//
+//                 let startPoint = i == 0 ? curretWidth : curretWidth + spaceBeetweenPanels
+//                 let endPoint = startPoint + panelSize
+//                 curretWidth = endPoint
+//
+//                 // walls
+//                 doc.setLineWidth(panelLineWidth)
+//                 doc.setDrawColor(colorCodes.vertivalFramingChannel);
+//                 doc.line(startPoint, marginFromTop + panelMarginFromHeadrail, startPoint, height - panelMarginFromFloorail)
+//                 doc.line(endPoint, marginFromTop + panelMarginFromHeadrail, endPoint, height - panelMarginFromFloorail)
+//
+//                 // top and bottom
+//                 doc.setLineWidth(panelLineWidth)
+//                 doc.setDrawColor(colorCodes.horizontalFramingChannel);
+//                 doc.line(startPoint + 1, marginFromTop + panelMarginFromHeadrail - 1, endPoint - 1, marginFromTop + panelMarginFromHeadrail - 1)
+//                 doc.line(startPoint + 1, height - panelMarginFromFloorail + 1, endPoint - 1, height - panelMarginFromFloorail + 1)
+//
+//                 // inner rectangle
+//                 doc.setFillColor(colorCodes.panels);
+//                 doc.rect(startPoint + 1, marginFromTop + panelMarginFromHeadrail, endPoint - startPoint - 2, height - panelMarginFromFloorail - marginFromTop - panelMarginFromHeadrail, "F")
+//
+//                 // horizontal bars
+//
+//                 if (data?.panels?.left?.horizontalBars > 0) {
+//
+//                     let spaceBetweenHorizontalBars = panelHeight / (data.panels.left.horizontalBars + 1)
+//                     let currentLinePosition = marginFromTop + panelMarginFromHeadrail
+//
+//                     for (let j = 0; j < data.panels.left.horizontalBars; j++) {
+//
+//                         currentLinePosition = currentLinePosition + spaceBetweenHorizontalBars
+//
+//                         doc.setLineWidth(panelLineWidth)
+//                         doc.setDrawColor(colorCodes.horizontalBars);
+//                         doc.line(startPoint + 1, currentLinePosition, endPoint - 1, currentLinePosition)
+//                     }
+//                 }
+//             }
+//
+//             leftPanelsEndPoint = curretWidth
+//
+//             // floor rail for left panels
+//
+//             doc.setDrawColor(colorCodes.floorRail);
+//             doc.setLineWidth(railLineWidth)
+//             doc.line(marginFronLeftRight, height, leftPanelsEndPoint, height)
+//         }
+//
+//         // door
+//         if (data.door) {
+//
+//             let spaceToRemove = data.panels.left.count > 0 ? spaceBeetweenPanels : 0
+//             let doorSize = (data.door.size / ratio) - spaceToRemove
+//
+//             let startPoint = data.panels.left.count > 0 ? curretWidth + spaceBeetweenPanels : curretWidth
+//             let endPoint = startPoint + doorSize
+//             curretWidth = endPoint
+//
+//             // walls
+//             doc.setLineWidth(panelLineWidth)
+//             doc.setDrawColor(colorCodes.vertivalFramingChannel);
+//             doc.line(startPoint, marginFromTop + panelMarginFromHeadrail, startPoint, height - panelMarginFromFloorail)
+//             doc.line(endPoint, marginFromTop + panelMarginFromHeadrail, endPoint, height - panelMarginFromFloorail)
+//
+//             // top and bottom
+//             doc.setLineWidth(panelLineWidth)
+//             doc.setDrawColor(colorCodes.horizontalFramingChannel);
+//             doc.line(startPoint + 1, marginFromTop + panelMarginFromHeadrail - 1, endPoint - 1, marginFromTop + panelMarginFromHeadrail - 1)
+//             doc.line(startPoint + 1, height - panelMarginFromFloorail + 1, endPoint - 1, height - panelMarginFromFloorail + 1)
+//
+//
+//             // inner rectangle
+//             doc.setFillColor(colorCodes.panels);
+//             doc.rect(startPoint + 1, marginFromTop + panelMarginFromHeadrail, endPoint - startPoint - 2, height - panelMarginFromFloorail - marginFromTop - panelMarginFromHeadrail, "F")
+//
+//             // horizontal bars
+//
+//             if (data?.door?.horizontalBars > 0) {
+//
+//                 let spaceBetweenHorizontalBars = panelHeight / (data.door.horizontalBars + 1)
+//                 let currentLinePosition = marginFromTop + panelMarginFromHeadrail
+//
+//                 for (let i = 0; i < data.door.horizontalBars; i++) {
+//
+//                     currentLinePosition = currentLinePosition + spaceBetweenHorizontalBars
+//
+//                     doc.setLineWidth(panelLineWidth)
+//                     doc.setDrawColor(colorCodes.horizontalBars);
+//                     doc.line(startPoint + 1, currentLinePosition, endPoint - 1, currentLinePosition)
+//                 }
+//             }
+//         }
+//
+//         // right panels
+//         if (data?.panels?.right?.count > 0) {
+//
+//             let spaceToRemove = (spaceBeetweenPanels * data.panels.right.count) / data.panels.right.count
+//             let panelSize = (data.panels.right.size / ratio) - spaceToRemove
+//             rightPanelsStartPoint = data.door ? curretWidth + spaceBeetweenPanels : curretWidth
+//
+//             for (let i = 0; i < data.panels.right.count; i++) {
+//
+//                 let startPoint = data.door ? curretWidth + spaceBeetweenPanels : curretWidth
+//                 let endPoint = startPoint + panelSize
+//                 curretWidth = endPoint
+//
+//                 // walls
+//                 doc.setLineWidth(panelLineWidth)
+//                 doc.setDrawColor(colorCodes.vertivalFramingChannel);
+//                 doc.line(startPoint, marginFromTop + panelMarginFromHeadrail, startPoint, height - panelMarginFromFloorail)
+//                 doc.line(endPoint, marginFromTop + panelMarginFromHeadrail, endPoint, height - panelMarginFromFloorail)
+//
+//                 // top and bottom
+//                 doc.setLineWidth(panelLineWidth)
+//                 doc.setDrawColor(colorCodes.horizontalFramingChannel);
+//                 doc.line(startPoint + 1, marginFromTop + panelMarginFromHeadrail - 1, endPoint - 1, marginFromTop + panelMarginFromHeadrail - 1)
+//                 doc.line(startPoint + 1, height - panelMarginFromFloorail + 1, endPoint - 1, height - panelMarginFromFloorail + 1)
+//
+//
+//                 // inner rectangle
+//                 doc.setFillColor(colorCodes.panels);
+//                 doc.rect(startPoint + 1, marginFromTop + panelMarginFromHeadrail, endPoint - startPoint - 2, height - panelMarginFromFloorail - marginFromTop - panelMarginFromHeadrail, "F")
+//
+//
+//
+//                 // horizontal bars
+//
+//                 if (data?.panels?.right?.horizontalBars > 0) {
+//
+//                     let spaceBetweenHorizontalBars = panelHeight / (data.panels.right.horizontalBars + 1)
+//                     let currentLinePosition = marginFromTop + panelMarginFromHeadrail
+//
+//                     for (let j = 0; j < data.panels.right.horizontalBars; j++) {
+//
+//                         currentLinePosition = currentLinePosition + spaceBetweenHorizontalBars
+//
+//                         doc.setLineWidth(panelLineWidth)
+//                         doc.setDrawColor(colorCodes.horizontalBars);
+//                         doc.line(startPoint + 1, currentLinePosition, endPoint - 1, currentLinePosition)
+//                     }
+//                 }
+//             }
+//
+//             // floor rail for right panels
+//
+//             doc.setDrawColor(colorCodes.floorRail);
+//             doc.setLineWidth(railLineWidth)
+//             doc.line(rightPanelsStartPoint, height, curretWidth, height)
+//         }
+//
+//         // color declarations
+//
+//         let descriptionHeight = height + 20
+//         let colorBoxHeight = height + 17.5
+//         let boxWidth = 3
+//         let boxHeight = 3
+//
+//         doc.setFontSize(10)
+//         doc.text("Head Channel", descriptionStartPoint, descriptionHeight)
+//         doc.setFillColor(colorCodes.headRail);
+//         doc.rect(descriptionStartPoint + 25, colorBoxHeight, boxWidth, boxHeight, "F")
+//
+//         doc.text("Floor Channel", descriptionStartPoint + 35, descriptionHeight)
+//         doc.setFillColor(colorCodes.floorRail);
+//         doc.rect(descriptionStartPoint + 60, colorBoxHeight, boxWidth, boxHeight, "F")
+//
+//         doc.text("Vertical Framing Channel", descriptionStartPoint + 70, descriptionHeight)
+//         doc.setFillColor(colorCodes.vertivalFramingChannel);
+//         doc.rect(descriptionStartPoint + 112.5, colorBoxHeight, boxWidth, boxHeight, "F")
+//
+//         doc.text("Horizontal Framing Channel", descriptionStartPoint + 122, descriptionHeight)
+//         doc.setFillColor(colorCodes.horizontalFramingChannel);
+//         doc.rect(descriptionStartPoint + 169, colorBoxHeight, boxWidth, boxHeight, "F")
+//
+//         doc.text("Horizontal Bars", descriptionStartPoint + 178, descriptionHeight)
+//         doc.setFillColor(colorCodes.horizontalBars);
+//         doc.rect(descriptionStartPoint + 205, colorBoxHeight, boxWidth, boxHeight, "F")
+//
+//         // footer data
+//
+//         doc.text("Ceiling Height", 15, height + 35)
+//         doc.text(":", 42, height + 35)
+//         doc.text(`${data.wallHeight}`, 47, height + 35)
+//
+//         doc.text("Door Category", 15, height + 43)
+//         doc.text(":", 42, height + 43)
+//         doc.text(`${data.door ? data.door.doorCategory.charAt(0).toUpperCase() + data.door.doorCategory.slice(1) : "N/A"}`, 47, height + 43)
+//
+//         doc.text("Door Color", 15, height + 51)
+//         doc.text(":", 42, height + 51)
+//         doc.text(`${data.door ? data.frameColorCode : "N/A"}`, 47, height + 51)
+//
+//         doc.text("Film Name", 230, height + 35)
+//         doc.text(":", 262, height + 35)
+//         doc.text(`${data.filmName ? data.filmName : "N/A"}`, 268, height + 35)
+//
+//         doc.text("Frame Color Code", 230, height + 43)
+//         doc.text(":", 262, height + 43)
+//         doc.text(`${data.frameColorCode}`, 268, height + 43)
+//
+//         // table section
+//         doc.addPage()
+//         doc.setLineWidth(0);
+//         doc.setDrawColor(colorCodes.default);
+//         doc.table(70, 25, tableData(), headers, { autoSize: false, headerBackgroundColor: "#FFFFFF", fontSize: 9, padding: 2 });
+//         doc.save(fileName)
+//
+//         pdfArray.push(fileName)
+//
+//         // **********     Client Pdf     **********
+//
+//         const clientDoc = new jsPDF({ orientation: "landscape" });
+//
+//         const ClientPdfQuantity = [
+//             (data.panels.left.count + data.panels.right.count) * 2,
+//             (data.door ? 2 : 0),
+//             data.panels.left.count * 2,
+//             data.panels.right.count * 2,
+//             data.door ? 2 : 0,
+//             data.panels.left.count > 0 ? 1 : 0,
+//             data.panels.right.count > 0 ? 1 : 0,
+//             1,
+//             data?.panels?.left?.count > 0 ? data.panels.left.horizontalBars * data.panels.left.count * 2 : 0,
+//             data?.panels?.right?.count > 0 ? data.panels.right.horizontalBars * data.panels.right.count * 2 : 0,
+//             data.door ? data.door.horizontalBars * 2 : 0,
+//             " ",
+//             " "
+//         ]
+//
+//         if (data.door) ClientPdfQuantity.push(data.panels.left.count, data.panels.right.count,)
+//         else quantity.push(data.panels.left.count)
+//
+//         ClientPdfQuantity.push(
+//             data.door ? 1 : 0,
+//             ((data.panels.left.count > 0 ? data.panels.left.count - 1 : 0) + (data.panels.right.count > 0 ? data.panels.right.count - 1 : 0)) * 2,
+//             data.product.name == 'Floating' ? 4 : data.product.name == "Fixed to two walls" ? 0 : data.product.name == "Fixed to one wall" ? 2 : 0,
+//             data.door && data.door.type == "single" ? 2 : data.door && data.door.type == "double" ? 4 : 0,
+//             data.door && data.door.type == "single" ? 2 : data.door && data.door.type == "double" ? 4 : 0,
+//             (data.panels.left.count + data.panels.right.count) * 2,
+//             (data.panels.left.count + data.panels.right.count) * 2,
+//         )
+//
+//         const ClientPdfMeasurement = [
+//             data.wallHeight,
+//             data.door ? data.door.size : "0",
+//             data?.panels?.left?.count > 0 ? data.panels.left.size : "0",
+//             data?.panels?.right?.count > 0 ? data?.panels?.right?.size : "0",
+//             data?.door?.size > 0 ? data.door.size : "0",
+//             data?.panels?.left?.count > 0 ? data.panels.left.size * data.panels.left.count : "0",
+//             data?.panels?.right?.count > 0 ? data.panels.right.size * data.panels.right.count : "0",
+//             data.wallLength,
+//             data?.panels?.left.count > 0 && data?.panels?.left?.horizontalBars > 0 ? data.panels.left.size : "0",
+//             data?.panels?.right.count > 0 && data?.panels?.right?.horizontalBars > 0 ? data.panels.right.size : "0",
+//             data?.door?.horizontalBars > 0 ? data.door.size : "0",
+//             data?.panels?.left.count > 0 && data?.panels?.left?.horizontalBars > 0 ? (data.wallHeight / data?.panels?.left?.horizontalBars) + 1 : "0",
+//             data?.panels?.right.count > 0 && data?.panels?.right?.horizontalBars > 0 ? (data.wallHeight / data?.panels?.right?.horizontalBars) + 1 : "0",
+//         ]
+//
+//
+//         if (data.door) ClientPdfMeasurement.push(
+//             data?.panels?.left?.count > 0 ? `${data.panels.left.size.toFixed(2)} x ${data.wallHeight.toFixed(2)}` : "0",
+//             data?.panels?.right?.count > 0 ? `${data.panels.right.size.toFixed(2)} x ${data.wallHeight.toFixed(2)}` : "0"
+//         )
+//
+//         else ClientPdfMeasurement.push(`${data.panels.left.size.toFixed(2)} x ${data.wallHeight.toFixed(2)}`)
+//
+//         ClientPdfMeasurement.push(
+//             data?.door ? `${data.door.size.toFixed(2)} x ${data.wallHeight.toFixed(2)}` : "0",
+//             `${tolrance.cappingChannel}`,
+//             `${tolrance.endCoverTrims}`,
+//             " ",
+//             data.door ? data.door.handleSize : "0",
+//             " ",
+//             " "
+//         )
+//
+//         const clientTableData = () => {
+//
+//             let result = []
+//
+//             for (let i = 0; i < (data.door ? 20 : 19); i++) {
+//
+//                 result.push({
+//                     Part: parts[i],
+//                     Quantity: ClientPdfQuantity[i].toString(),
+//                     Measurement: ClientPdfMeasurement[i].toString().includes("x") || ClientPdfMeasurement[i] == " " ? ClientPdfMeasurement[i] : parseFloat(ClientPdfMeasurement[i]).toFixed(2)
+//                 })
+//             }
+//
+//             return result
+//         };
+//
+//         // head section
+//
+//         clientDoc.addImage(iamgeData, "png", 10, 10, 50, 10)
+//
+//         clientDoc.setFontSize(10)
+//         clientDoc.text(`Order ID`, 225, 15)
+//         clientDoc.text(`:`, 250, 15)
+//         clientDoc.text(`${orderId}`, 255, 15)
+//
+//         clientDoc.setFontSize(10)
+//         clientDoc.text(`Product Type`, 225, 20)
+//         clientDoc.text(`:`, 250, 20)
+//         clientDoc.text(`${data.product.name}`, 255, 20)
+//
+//         // main image
+//
+//         clientDoc.addImage(data.base64, "png", 15, marginFromTop + 5, pageWidth, height - 10)
+//
+//         // footer data
+//
+//         clientDoc.text("Ceiling Height", 15, height + 35)
+//         clientDoc.text(":", 42, height + 35)
+//         clientDoc.text(`${data.wallHeight}`, 47, height + 35)
+//
+//         clientDoc.text("Door Category", 15, height + 43)
+//         clientDoc.text(":", 42, height + 43)
+//         clientDoc.text(`${data.door ? data.door.doorCategory.charAt(0).toUpperCase() + data.door.doorCategory.slice(1) : "N/A"}`, 47, height + 43)
+//
+//         clientDoc.text("Door Color", 15, height + 51)
+//         clientDoc.text(":", 42, height + 51)
+//         clientDoc.text(`${data.door ? data.frameColorCode : "N/A"}`, 47, height + 51)
+//
+//         clientDoc.text("Film Name", 230, height + 35)
+//         clientDoc.text(":", 262, height + 35)
+//         clientDoc.text(`${data.filmName ? data.filmName : "N/A"}`, 268, height + 35)
+//
+//         clientDoc.text("Frame Color Code", 230, height + 43)
+//         clientDoc.text(":", 262, height + 43)
+//         clientDoc.text(`${data.frameColorCode}`, 268, height + 43)
+//
+//         // table section
+//
+//         clientDoc.addPage()
+//         clientDoc.setLineWidth(0);
+//         clientDoc.setDrawColor(colorCodes.default);
+//         clientDoc.table(70, 25, clientTableData(), headers, { autoSize: false, headerBackgroundColor: "#FFFFFF", fontSize: 9, padding: 2 });
+//         clientDoc.save(clientFileName)
+//
+//         clientPdfArray.push(clientFileName)
+//     }
+//
+//     if (req.body.fromCart) await cartSchema.model.deleteMany()
+//     return res.status(200).json(createSuccessResponse("PDF", clientPdfArray))
+// }
 
 // cart to cart
 const addToCart = async (req, res) => {
@@ -2421,7 +2420,6 @@ module.exports = {
     productListForWebsite,
     textureAPI,
     textureDetail,
-    imageAndPdfGenerator,
     ordersList,
     orderDetails,
     getTolerance,

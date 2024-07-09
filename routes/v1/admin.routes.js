@@ -54,7 +54,6 @@ const { productsList,
     productListForWebsite,
     textureAPI,
     textureDetail,
-    imageAndPdfGenerator,
     ordersList,
     orderDetails,
     getTolerance,
@@ -65,6 +64,7 @@ const { productsList,
     removeFromCart,
     allFilmActivateDeactivate
 } = require('../../controllers/v1/admin.controller')
+const {imageAndPdfGenerator} = require('../../controllers/v1/pdf-quote.controller')
 
 const { productImage, filmImage, textureImage } = require('../../middlewares/multer');
 
