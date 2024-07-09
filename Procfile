@@ -1,1 +1,1 @@
-web: node app.jsheroku create
+web: node app.js
