@@ -1,6 +1,7 @@
 //models 
 const productSchema = require('../../models/products.model')
 const panelSchema = require('../../models/panels.model')
+const doorSchema = require('../../models/door.model')
 const doorGlassSchema = require('../../models/doorGlass.model')
 const configurationSchema = require('../../models/configuration.model')
 const filmSchema = require('../../models/film.model')
@@ -2366,6 +2367,42 @@ const removeFromCart = async (req, res) => {
     else return res.status(400).json(createErrorResponse(message.itmeNotFound))
 }
 
+const createDoor = async (req, res) => {
+    const {
+        doorCategory,
+        doorType,
+        typeOfOpening,
+        directionOfOpening,
+        doorSize,
+        doorPrice,
+        handlePosition,
+    } = req.body
+
+
+    const saved = await new doorSchema(req.body).save()
+    if (saved) return res.status(200).json(createSuccessResponse(message.doorAdded))
+    else return res.status(400).json(createErrorResponse(message.unableToSave))
+}
+
+const doorList = async (req, res) => {
+    const list = await doorSchema.find()
+    if (list) return res.status(200).json(createSuccessResponse(message.doorList, list))
+}
+
+const removeDoor = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deletedDoor = await doorSchema.findByIdAndDelete(id);
+        if (deletedDoor) {
+            return res.status(200).json(createSuccessResponse('Door successfully removed'));
+        } else {
+            return res.status(404).json(createErrorResponse('Door not found'));
+        }
+    } catch (error) {
+        return res.status(500).json(createErrorResponse('Server error', error.message));
+    }
+};
+
 module.exports = {
     productsList,
     productView,
@@ -2428,5 +2465,8 @@ module.exports = {
     addToCart,
     cartList,
     removeFromCart,
-    allFilmActivateDeactivate
+    allFilmActivateDeactivate,
+    createDoor,
+    doorList,
+    removeDoor
 }

@@ -62,7 +62,10 @@ const { productsList,
     addToCart,
     cartList,
     removeFromCart,
-    allFilmActivateDeactivate
+    allFilmActivateDeactivate,
+    createDoor,
+    doorList,
+    removeDoor
 } = require('../../controllers/v1/admin.controller')
 const {imageAndPdfGenerator} = require('../../controllers/v1/pdf-quote.controller')
 
@@ -87,6 +90,12 @@ adminRouter.get('/partitionDetail', asyncTryCatchMiddleware(partitionDetail))
 adminRouter.post('/partitionUpdate', asyncTryCatchMiddleware(partitionUpdate))
 
 adminRouter.post('/addPanel', asyncTryCatchMiddleware(addPanel))
+
+adminRouter.post('/createDoor', asyncTryCatchMiddleware(createDoor))
+
+adminRouter.get('/doorList', asyncTryCatchMiddleware(doorList))
+
+adminRouter.delete('/removeDoor/:id', asyncTryCatchMiddleware(removeDoor))
 
 adminRouter.post('/panelList', asyncTryCatchMiddleware(panelList))
 
