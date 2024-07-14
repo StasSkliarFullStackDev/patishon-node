@@ -14,6 +14,7 @@ const { jsPDF } = require('jspdf')
 const OrderSchema = require('../../models/order.model')
 const tolranceSchema = require('../../models/tolerance.model')
 const cartSchema = require('../../models/cart.model')
+const glassCoveringSchema = require('../../models/glassCovering.model')
 
 //helpers
 const { paginationData, parseToMongoObjectID, createErrorResponse, createSuccessResponse, isNotNullAndUndefined, isvalidId } = require('../../helpers/utils')
@@ -2368,25 +2369,32 @@ const removeFromCart = async (req, res) => {
 }
 
 const createDoor = async (req, res) => {
-    const {
-        doorCategory,
-        doorType,
-        typeOfOpening,
-        directionOfOpening,
-        doorSize,
-        doorPrice,
-        handlePosition,
-    } = req.body
-
-
     const saved = await new doorSchema(req.body).save()
     if (saved) return res.status(200).json(createSuccessResponse(message.doorAdded))
+    else return res.status(400).json(createErrorResponse(message.unableToSave))
+}
+
+const createGlassCovering = async (req, res) => {
+    const saved = await new glassCoveringSchema(req.body).save()
+    if (saved) return res.status(200).json(createSuccessResponse(message.glassCoveringAdded))
+    else return res.status(400).json(createErrorResponse(message.unableToSave))
+}
+
+const updateGlassCoveringList = async (req, res) => {
+    const { id } = req.params;
+    const updated = await glassCoveringSchema.findByIdAndUpdate(id, { $set: req.body }, { new: true });
+    if (updated) return res.status(200).json(createSuccessResponse(message.glassCoveringUpdated))
     else return res.status(400).json(createErrorResponse(message.unableToSave))
 }
 
 const doorList = async (req, res) => {
     const list = await doorSchema.find()
     if (list) return res.status(200).json(createSuccessResponse(message.doorList, list))
+}
+
+const glassCoveringList = async (req, res) => {
+    const list = await glassCoveringSchema.find()
+    if (list) return res.status(200).json(createSuccessResponse(message.glassCoveringList, list))
 }
 
 const removeDoor = async (req, res) => {
@@ -2468,5 +2476,8 @@ module.exports = {
     allFilmActivateDeactivate,
     createDoor,
     doorList,
-    removeDoor
+    removeDoor,
+    createGlassCovering,
+    glassCoveringList,
+    updateGlassCoveringList
 }

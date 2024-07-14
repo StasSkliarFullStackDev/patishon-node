@@ -65,7 +65,9 @@ const { productsList,
     allFilmActivateDeactivate,
     createDoor,
     doorList,
-    removeDoor
+    removeDoor,
+    createGlassCovering,
+    glassCoveringList, updateGlassCoveringList
 } = require('../../controllers/v1/admin.controller')
 const {imageAndPdfGenerator} = require('../../controllers/v1/pdf-quote.controller')
 
@@ -96,6 +98,12 @@ adminRouter.post('/createDoor', asyncTryCatchMiddleware(createDoor))
 adminRouter.get('/doorList', asyncTryCatchMiddleware(doorList))
 
 adminRouter.delete('/removeDoor/:id', asyncTryCatchMiddleware(removeDoor))
+
+adminRouter.post('/createGlassCovering', asyncTryCatchMiddleware(createGlassCovering))
+
+adminRouter.get('/glassCoveringList', asyncTryCatchMiddleware(glassCoveringList))
+
+adminRouter.post('/glassCoveringList/:id', asyncTryCatchMiddleware(updateGlassCoveringList))
 
 adminRouter.post('/panelList', asyncTryCatchMiddleware(panelList))
 

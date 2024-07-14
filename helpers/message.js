@@ -1,5 +1,6 @@
 module.exports = {
     prdouctList: "Product list fetched successfully.",
+    glassCoveringList: "Glass covering list fetched successfully.",
     productDetail: "Product detail fetched successfully.",
     unableToFound: "Unable to found.",
     validMongoId: "Please provide valid id.",
@@ -16,6 +17,8 @@ module.exports = {
     panelSizeAlready: "Panel size already exist.",
     panelAdded: "Panel added successfully.",
     doorAdded: "Door added successfully.",
+    glassCoveringAdded: "Glass covering added successfully.",
+    glassCoveringUpdated: "Glass covering updated successfully.",
     unableToSave: "Unable to save.",
     panelList: "Panel list fetched successfully.",
     doorList: "Door list fetched successfully.",
