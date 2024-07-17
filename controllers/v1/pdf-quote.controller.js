@@ -257,10 +257,6 @@ const imageAndPdfGenerator = async (req, res) => {
         doc.text(":", 42, height + 35);
         doc.text(`${data.wallHeight}`, 47, height + 35);
 
-        doc.text("Door Category", 15, height + 43);
-        doc.text(":", 42, height + 43);
-        doc.text(`${data.door ? data.door.doorCategory.charAt(0).toUpperCase() + data.door.doorCategory.slice(1) : "N/A"}`, 47, height + 43);
-
         doc.text("Door Color", 15, height + 51);
         doc.text(":", 42, height + 51);
         doc.text(`${data.door ? data.frameColorCode : "N/A"}`, 47, height + 51);
@@ -296,10 +292,6 @@ const imageAndPdfGenerator = async (req, res) => {
         clientDoc.text(":", 42, height + 35);
         clientDoc.text(`${data.wallHeight}`, 47, height + 35);
 
-        clientDoc.text("Door Category", 15, height + 43);
-        clientDoc.text(":", 42, height + 43);
-        clientDoc.text(`${data.door ? data.door.doorCategory.charAt(0).toUpperCase() + data.door.doorCategory.slice(1) : "N/A"}`, 47, height + 43);
-
         clientDoc.text("Door Color", 15, height + 51);
         clientDoc.text(":", 42, height + 51);
         clientDoc.text(`${data.door ? data.frameColorCode : "N/A"}`, 47, height + 51);
@@ -309,22 +301,33 @@ const imageAndPdfGenerator = async (req, res) => {
         clientDoc.text(`${data.frameColorCode}`, 268, height + 43);
 
         const RequestObj = req.body.data[0]
-        console.log(RequestObj)
+        const panelSizes = RequestObj["newPanels"]
+            .filter(item => item.name.toLowerCase() !== "door")
+            .map(item => item.value);
+
+        const sizesString = panelSizes.join(", ");
+
         clientDoc.addPage([], "landscape")
         clientDoc.setFontSize(14);
         clientDoc.setLineHeightFactor(1.2);
         clientDoc.text(
             `Patishon Height: ${RequestObj["wallHeight"]} \n` +
             `Room Width: ${RequestObj["wallLength"]} \n` +
-            `Glass Covering: ${RequestObj["glassCovering"]} \n` +
-            `Door Type: ${RequestObj["door"]?.type} \n` +
-            `Door Direction: ${RequestObj["door"]?.doorHinges} \n` +
-            `Door Style: ${RequestObj["door"]?.horizontalBars > 0 ? "Framed" : "Frameless"} \n` +
-            (RequestObj["door"]?.horizontalBars > 0 ? `Horizontal Bars: ${RequestObj["door"]?.horizontalBars} \n` : '') +
-            `Frame Design: ${RequestObj["numberOfHorizontalFrames"] > 0 ? "Framed" : 'Frameless'} \n` +
+            `Glass Covering: ${RequestObj["glassCovering"]} \n \n` +
+            `Door Category: ${RequestObj["newDoor"]?.doorCategory || ''} \n` +
+            `Door type: ${RequestObj["newDoor"]?.doorType || ''} \n` +
+            (RequestObj["newDoor"]?.doorCategory === 'hinged' ? `Door type of opening: ${RequestObj["newDoor"]?.typeOfOpening} \n` : '') +
+            ((RequestObj["newDoor"]?.doorCategory === 'sliding' && RequestObj["newDoor"]?.doorType === 'single') ? `Door direction of opening: ${RequestObj["newDoor"]?.directionOfOpening} \n` : '') +
+            ((RequestObj["newDoor"].doorCategory === 'hinged' && RequestObj["newDoor"].doorType === 'single') ? `Door handle position: ${RequestObj["newDoor"]?.handlePosition} \n` : '') +
+            `Door door size: ${RequestObj["newDoor"]?.doorSize || ''} \n` +
+            `Door door price: ${RequestObj["newDoor"]?.doorPrice || ''} \n` +
+            `Door Style: ${(RequestObj["door"]?.horizontalBars > 0) ? "Framed" : "Frameless"} \n` +
+            ((RequestObj["door"]?.horizontalBars > 0) ? `Horizontal Bars: ${RequestObj["door"]?.horizontalBars} \n` : '') +
+            `\nFrame Design: ${RequestObj["numberOfHorizontalFrames"] > 0 ? "Framed" : 'Frameless'} \n` +
             (RequestObj["numberOfHorizontalFrames"] > 0 ? `Horizontal Bars for frame: ${RequestObj["numberOfHorizontalFrames"]} \n` : '') +
-            `Frame Color: ${RequestObj["frameColorCode"]}`,
-            20, 20);
+            `Frame Color: ${RequestObj["frameColorCode"] || ''} \n` +
+            `\nPanel Sizes: ${sizesString || ''}`,
+        20, 20);
 
         clientDoc.save(clientFileName);
         clientPdfArray.push(clientFileName);
