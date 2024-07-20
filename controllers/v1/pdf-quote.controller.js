@@ -5,6 +5,8 @@ const { jsPDF } = require("jspdf");
 const fs = require("fs");
 const cartSchema = require("../../models/cart.model");
 const { createSuccessResponse } = require("../../helpers/utils");
+const glassCoveringSchema = require("../../models/glassCovering.model");
+const message = require("../../helpers/message");
 
 const imageAndPdfGenerator = async (req, res) => {
     const pdfDataArray = req.body.data;
@@ -306,6 +308,19 @@ const imageAndPdfGenerator = async (req, res) => {
             .map(item => item.value);
 
         const sizesString = panelSizes.join(", ");
+        const panelsPrice = RequestObj["newPanels"]
+            .filter(item => item.name.toLowerCase() !== "door")
+            .reduce((sum, item) => sum + item.value, 0);
+
+        const panelsLength = RequestObj["newPanels"]
+            .filter(item => item.name.toLowerCase() !== "door")
+            .reduce((sum, item) => sum + item.value, 0);
+
+        let glassCoveringPrice = 0
+        const glassCoveringList = await glassCoveringSchema.find({ glassType: 'clear' })
+        if (glassCoveringList) {
+            glassCoveringPrice = glassCoveringList[0].price * panelsLength
+        }
 
         clientDoc.addPage([], "landscape")
         clientDoc.setFontSize(14);
@@ -313,20 +328,26 @@ const imageAndPdfGenerator = async (req, res) => {
         clientDoc.text(
             `Patishon Height: ${RequestObj["wallHeight"]} \n` +
             `Room Width: ${RequestObj["wallLength"]} \n` +
-            `Glass Covering: ${RequestObj["glassCovering"]} \n \n` +
+            `\nGlass Covering: ${RequestObj["glassCovering"]} \n` +
+            `Glass Covering price: £${glassCoveringPrice} \n\n` +
+
             `Door Category: ${RequestObj["newDoor"]?.doorCategory || ''} \n` +
             `Door type: ${RequestObj["newDoor"]?.doorType || ''} \n` +
             (RequestObj["newDoor"]?.doorCategory === 'hinged' ? `Door type of opening: ${RequestObj["newDoor"]?.typeOfOpening} \n` : '') +
             ((RequestObj["newDoor"]?.doorCategory === 'sliding' && RequestObj["newDoor"]?.doorType === 'single') ? `Door direction of opening: ${RequestObj["newDoor"]?.directionOfOpening} \n` : '') +
             ((RequestObj["newDoor"].doorCategory === 'hinged' && RequestObj["newDoor"].doorType === 'single') ? `Door handle position: ${RequestObj["newDoor"]?.handlePosition} \n` : '') +
-            `Door door size: ${RequestObj["newDoor"]?.doorSize || ''} \n` +
-            `Door door price: ${RequestObj["newDoor"]?.doorPrice || ''} \n` +
+            `Door size: ${RequestObj["newDoor"]?.doorSize || ''} \n` +
             `Door Style: ${(RequestObj["door"]?.horizontalBars > 0) ? "Framed" : "Frameless"} \n` +
             ((RequestObj["door"]?.horizontalBars > 0) ? `Horizontal Bars: ${RequestObj["door"]?.horizontalBars} \n` : '') +
-            `\nFrame Design: ${RequestObj["numberOfHorizontalFrames"] > 0 ? "Framed" : 'Frameless'} \n` +
+            `Frame Design: ${RequestObj["numberOfHorizontalFrames"] > 0 ? "Framed" : 'Frameless'} \n` +
+            `Door price: £${RequestObj["newDoor"]?.doorPrice || ''} \n\n` +
+
             (RequestObj["numberOfHorizontalFrames"] > 0 ? `Horizontal Bars for frame: ${RequestObj["numberOfHorizontalFrames"]} \n` : '') +
             `Frame Color: ${RequestObj["frameColorCode"] || ''} \n` +
-            `\nPanel Sizes: ${sizesString || ''}`,
+            `\nPanel Sizes: ${sizesString || ''}` +
+            `\nPanel Price: £${panelsPrice || ''}` +
+
+            `\n\nTotal: Panels Price + Door Price + Glass Covering Price = £${panelsPrice + RequestObj["newDoor"]?.doorPrice + glassCoveringPrice}`,
         20, 20);
 
         clientDoc.save(clientFileName);
