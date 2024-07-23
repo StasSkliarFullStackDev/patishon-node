@@ -7,6 +7,8 @@ const cartSchema = require("../../models/cart.model");
 const { createSuccessResponse } = require("../../helpers/utils");
 const glassCoveringSchema = require("../../models/glassCovering.model");
 const message = require("../../helpers/message");
+const puppeteer = require('puppeteer');
+const path = require('path');
 
 const imageAndPdfGenerator = async (req, res) => {
     const pdfDataArray = req.body.data;
@@ -287,7 +289,20 @@ const imageAndPdfGenerator = async (req, res) => {
         clientDoc.text(`${data.product.name}`, 255, 20);
 
         // main image
-        clientDoc.addImage(data.base64, "png", 15, marginFromTop + 5, pageWidth, height - 10);
+        const DPI = 140;
+
+        const imageWidthMM = (data["newImageWidth"] * 25.4) / DPI;
+        const imageHeightMM = (data["newImageHeight"] * 25.4) / DPI;
+
+        const imagePageWidth = doc.internal.pageSize.getWidth();
+
+        let xPositionForImg = 15;
+
+        if (imagePageWidth > imageWidthMM + 30) {
+            xPositionForImg = (imagePageWidth - imageWidthMM) / 2;
+        }
+
+        clientDoc.addImage(data['newImage'], "png", xPositionForImg, marginFromTop + 5, imageWidthMM, imageHeightMM);
 
         // footer data
         clientDoc.text("Ceiling Height", 15, height + 35);

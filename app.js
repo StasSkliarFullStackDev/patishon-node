@@ -8,6 +8,10 @@ app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 const { customCORSHandler, escapeSpecialCharacter } = require('./helpers/utils')
+const path = require('path');
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // app.use(customCORSHandler);
 app.use(logger('dev'));
