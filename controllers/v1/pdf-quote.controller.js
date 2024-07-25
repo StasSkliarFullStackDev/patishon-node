@@ -365,7 +365,7 @@ const imageAndPdfGenerator = async (req, res) => {
                 `\nPanel Sizes: ${sizesString || ''}` +
                 `\nPanel Price: £${panelsPrice + (RequestObj["wallLength"] === panelsPrice ? 20 : 0)}` +
 
-                `\n\nTotal: Panels Price + Door Price + Glass Covering Price = £${panelsPrice + (RequestObj["wallLength"] + RequestObj["newDoor"]?.doorSize === panelsPrice ? 20 : 0) + RequestObj["newDoor"]?.doorPrice + glassCoveringPrice}`,
+                `\n\nTotal: Panels Price + Door Price + Glass Covering Price = £${panelsPrice + (RequestObj["wallLength"] = (RequestObj["newDoor"]?.doorSize + panelsPrice) ? 20 : 0) + RequestObj["newDoor"]?.doorPrice + glassCoveringPrice}`,
                 20, 20);
         } else {
             clientDoc.text(
