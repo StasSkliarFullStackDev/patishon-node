@@ -313,9 +313,9 @@ const imageAndPdfGenerator = async (req, res) => {
         clientDoc.text(":", 42, height + 51);
         clientDoc.text(`${data.door ? data.frameColorCode : "N/A"}`, 47, height + 51);
 
-        clientDoc.text("Frame Color Code", 42, height + 43);
-        clientDoc.text(":", 262, height + 43);
-        clientDoc.text(`${data.frameColorCode}`, 268, height + 43);
+        clientDoc.text("Frame Color Code", 15, height + 43);
+        clientDoc.text(":", 42, height + 43);
+        clientDoc.text(`${data.frameColorCode}`, 47, height + 43);
 
         const RequestObj = req.body.data[0]
         const panelSizes = RequestObj["newPanels"]
@@ -365,7 +365,7 @@ const imageAndPdfGenerator = async (req, res) => {
                 `\nPanel Sizes: ${sizesString || ''}` +
                 `\nPanel Price: £${panelsPrice + (RequestObj["wallLength"] === panelsPrice ? 20 : 0)}` +
 
-                `\n\nTotal: Panels Price + Door Price + Glass Covering Price = £${panelsPrice + (RequestObj["wallLength"] = (RequestObj["newDoor"]?.doorSize + panelsPrice) ? 20 : 0) + RequestObj["newDoor"]?.doorPrice + glassCoveringPrice}`,
+                `\n\nTotal: Panels Price + Door Price + Glass Covering Price = £${panelsPrice + (RequestObj["wallLength"] === (RequestObj["newDoor"]?.doorSize + panelsPrice) ? 20 : 0) + RequestObj["newDoor"]?.doorPrice + glassCoveringPrice}`,
                 20, 20);
         } else {
             clientDoc.text(
