@@ -373,7 +373,7 @@ const imageAndPdfGenerator = async (req, res) => {
 
                 (RequestObj["numberOfHorizontalFrames"] > 0 ? `Horizontal Bars for frame: ${RequestObj["numberOfHorizontalFrames"]} \n` : '') +
                 `Frame Color: ${RequestObj["frameColorCode"] || ''} \n` +
-                `\nPanel Sizes: ${sizesString || ''}` +
+                `\nPanel Sizes: ${sizesString || ''}mm` +
                 `\nPanel Price: £${panelsPrice + (RequestObj["wallLength"] === panelsPrice ? 20 : 0)}` +
 
                 `\n\nTotal: Panels Price + Door Price + Glass Covering Price = £${panelsPrice + (RequestObj["wallLength"] === (RequestObj["newDoor"]?.doorSize + panelsPrice) ? 20 : 0) + RequestObj["newDoor"]?.doorPrice + glassCoveringPrice}`,
@@ -389,7 +389,7 @@ const imageAndPdfGenerator = async (req, res) => {
 
                 (RequestObj["numberOfHorizontalFrames"] > 0 ? `Horizontal Bars for frame: ${RequestObj["numberOfHorizontalFrames"]} \n` : '') +
                 `Frame Color: ${RequestObj["frameColorCode"] || ''} \n` +
-                `\nPanel Sizes: ${sizesString || ''}` +
+                `\nPanel Sizes: ${sizesString || ''}mm` +
                 `\nPanel Price: £${panelsPrice + (RequestObj["wallLength"] === panelsPrice ? 20 : 0)}` +
 
                 `\n\nTotal: Panels Price + Glass Covering Price = £${panelsPrice + (RequestObj["wallLength"] === panelsPrice ? 20 : 0) + glassCoveringPrice}`,
