@@ -322,7 +322,7 @@ const imageAndPdfGenerator = async (req, res) => {
             .filter(item => item.name.toLowerCase() !== "door")
             .map(item => item.value);
 
-        const sizesString = panelSizes.join(", ");
+        const sizesString = panelSizes.join("mm, ");
         const panelsPrice = RequestObj["newPanels"]
             .filter(item => item.name.toLowerCase() !== "door")
             .reduce((sum, item) => sum + item.value, 0);
@@ -365,7 +365,7 @@ const imageAndPdfGenerator = async (req, res) => {
                 (RequestObj["newDoor"]?.doorCategory === 'hinged' ? `Door type of opening: ${RequestObj["newDoor"]?.typeOfOpening} \n` : '') +
                 ((RequestObj["newDoor"]?.doorCategory === 'sliding' && RequestObj["newDoor"]?.doorType === 'single') ? `Door direction of opening: ${RequestObj["newDoor"]?.directionOfOpening} \n` : '') +
                 ((RequestObj["newDoor"].doorCategory === 'hinged' && RequestObj["newDoor"].doorType === 'single') ? `Door handle position: ${RequestObj["newDoor"]?.handlePosition} \n` : '') +
-                `Door size: ${RequestObj["newDoor"]?.doorSize || ''} \n` +
+                `Door size: ${RequestObj["newDoor"]?.doorSize || 'n/a'} mm \n` +
                 `Door Style: ${(RequestObj["door"]?.horizontalBars > 0) ? "Framed" : "Frameless"} \n` +
                 ((RequestObj["door"]?.horizontalBars > 0) ? `Horizontal Bars: ${RequestObj["door"]?.horizontalBars} \n` : '') +
                 `Frame Design: ${RequestObj["numberOfHorizontalFrames"] > 0 ? "Framed" : 'Frameless'} \n` +
