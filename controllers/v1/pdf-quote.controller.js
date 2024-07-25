@@ -337,6 +337,17 @@ const imageAndPdfGenerator = async (req, res) => {
             glassCoveringPrice = glassCoveringList[0].price * panelsLength
         }
 
+        let recommendedOpeningWidth = ''
+        if (RequestObj["newDoor"]?.doorSize) {
+            if (RequestObj["wallLength"] === (RequestObj["newDoor"]?.doorSize + panelsPrice)) {
+                recommendedOpeningWidth = `Recommended Opening Width: ${parseInt(sizesString) + RequestObj["newDoor"]?.doorSize + 20} \n`
+            }
+        } else {
+            if (RequestObj["wallLength"] === panelsPrice) {
+                recommendedOpeningWidth = `Recommended Opening Width: ${parseInt(sizesString) + 20} \n`
+            }
+        }
+
         clientDoc.addPage([], "landscape")
         clientDoc.setFontSize(14);
         clientDoc.setLineHeightFactor(1.2);
@@ -344,7 +355,7 @@ const imageAndPdfGenerator = async (req, res) => {
             clientDoc.text(
                 `Patishon Height: ${RequestObj["wallHeight"]} \n` +
                 `Room Width: ${RequestObj["wallLength"]} \n` +
-                `Recommended Opening Width: ${parseInt(sizesString) + RequestObj["newDoor"]?.doorSize + 20} \n` +
+                recommendedOpeningWidth +
 
                 `\nGlass Covering: ${RequestObj["glassCovering"]} \n` +
                 `Glass Covering price: £${glassCoveringPrice} \n\n` +
@@ -371,7 +382,7 @@ const imageAndPdfGenerator = async (req, res) => {
             clientDoc.text(
                 `Patishon Height: ${RequestObj["wallHeight"]} \n` +
                 `Room Width: ${RequestObj["wallLength"]} \n` +
-                `Recommended Opening Width: ${parseInt(sizesString) + 20} mm \n` +
+                recommendedOpeningWidth +
 
                 `\nGlass Covering: ${RequestObj["glassCovering"]} \n` +
                 `Glass Covering price: £${glassCoveringPrice} \n\n` +
