@@ -377,9 +377,9 @@ const imageAndPdfGenerator = async (req, res) => {
                 (RequestObj["numberOfHorizontalFrames"] > 0 ? `Horizontal Bars for frame: ${RequestObj["numberOfHorizontalFrames"]} \n` : '') +
                 `Frame Color: ${RequestObj["frameColorCode"] || ''} \n` +
                 `\nPanel Sizes: ${sizesString || ''}` +
-                `\nPanel Price: £${panelsPrice || ''}` +
+                `\nPanel Price: £${panelsPrice + (RequestObj["wallLength"] === panelsPrice ? 20 : 0)}` +
 
-                `\n\nTotal: Panels Price + Glass Covering Price = £${panelsPrice + glassCoveringPrice}`,
+                `\n\nTotal: Panels Price + Glass Covering Price = £${panelsPrice + (RequestObj["wallLength"] === panelsPrice ? 20 : 0) + glassCoveringPrice}`,
                 20, 20);
         }
 
