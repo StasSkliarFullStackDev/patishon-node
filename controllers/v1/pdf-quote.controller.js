@@ -353,8 +353,8 @@ const imageAndPdfGenerator = async (req, res) => {
         clientDoc.setLineHeightFactor(1.2);
         if(RequestObj["skipThirdStep"] === false) {
             clientDoc.text(
-                `Patishon Height: ${RequestObj["wallHeight"]} \n` +
-                `Room Width: ${RequestObj["wallLength"]} \n` +
+                `Patishon Height: ${RequestObj["wallHeight"]} mm \n` +
+                `Room Width: ${RequestObj["wallLength"]} mm \n` +
                 recommendedOpeningWidth +
 
                 `\nGlass Covering: ${RequestObj["glassCovering"]} \n` +
@@ -380,8 +380,8 @@ const imageAndPdfGenerator = async (req, res) => {
                 20, 20);
         } else {
             clientDoc.text(
-                `Patishon Height: ${RequestObj["wallHeight"]} \n` +
-                `Room Width: ${RequestObj["wallLength"]} \n` +
+                `Patishon Height: ${RequestObj["wallHeight"]} mm \n` +
+                `Room Width: ${RequestObj["wallLength"]} mm \n` +
                 recommendedOpeningWidth +
 
                 `\nGlass Covering: ${RequestObj["glassCovering"]} \n` +
