@@ -344,7 +344,7 @@ const imageAndPdfGenerator = async (req, res) => {
             clientDoc.text(
                 `Patishon Height: ${RequestObj["wallHeight"]} \n` +
                 `Room Width*: ${RequestObj["wallLength"]} \n` +
-                `*Recommended opening = (the calculation should be the overall width of the panels and doors + 20mm)` +
+                `*Recommended opening = (the calculation should be the overall width of the panels and doors + 20mm) \n` +
 
                 `\nGlass Covering: ${RequestObj["glassCovering"]} \n` +
                 `Glass Covering price: £${glassCoveringPrice} \n\n` +
