@@ -313,7 +313,7 @@ const imageAndPdfGenerator = async (req, res) => {
         clientDoc.text(":", 42, height + 51);
         clientDoc.text(`${data.door ? data.frameColorCode : "N/A"}`, 47, height + 51);
 
-        clientDoc.text("Frame Color Code", 230, height + 43);
+        clientDoc.text("Frame Color Code", 42, height + 43);
         clientDoc.text(":", 262, height + 43);
         clientDoc.text(`${data.frameColorCode}`, 268, height + 43);
 
