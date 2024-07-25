@@ -339,11 +339,11 @@ const imageAndPdfGenerator = async (req, res) => {
 
         let recommendedOpeningWidth = ''
         if (RequestObj["newDoor"]?.doorSize) {
-            if (RequestObj["wallLength"] === (RequestObj["newDoor"]?.doorSize + panelsPrice)) {
+            if (RequestObj["wallLength"] === (RequestObj["newDoor"]?.doorSize + panelsLength)) {
                 recommendedOpeningWidth = `Recommended Opening Width: ${panelsLength + RequestObj["newDoor"]?.doorSize + 20} \n`
             }
         } else {
-            if (RequestObj["wallLength"] === panelsPrice) {
+            if (RequestObj["wallLength"] === panelsLength) {
                 recommendedOpeningWidth = `Recommended Opening Width: ${panelsLength + 20} \n`
             }
         }
