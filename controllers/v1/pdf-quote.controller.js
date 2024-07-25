@@ -343,7 +343,9 @@ const imageAndPdfGenerator = async (req, res) => {
         if(RequestObj["skipThirdStep"] === false) {
             clientDoc.text(
                 `Patishon Height: ${RequestObj["wallHeight"]} \n` +
-                `Room Width: ${RequestObj["wallLength"]} \n` +
+                `Room Width*: ${RequestObj["wallLength"]} \n` +
+                `*Recommended opening = (the calculation should be the overall width of the panels and doors + 20mm)` +
+
                 `\nGlass Covering: ${RequestObj["glassCovering"]} \n` +
                 `Glass Covering price: £${glassCoveringPrice} \n\n` +
 
