@@ -343,8 +343,8 @@ const imageAndPdfGenerator = async (req, res) => {
         if(RequestObj["skipThirdStep"] === false) {
             clientDoc.text(
                 `Patishon Height: ${RequestObj["wallHeight"]} \n` +
-                `Room Width*: ${RequestObj["wallLength"]} \n` +
-                `*Recommended opening = (the calculation should be the overall width of the panels and doors + 20mm) \n` +
+                `Room Width: ${RequestObj["wallLength"]} \n` +
+                `Recommended Opening Width: ${parseInt(sizesString) + RequestObj["newDoor"]?.doorSize + 20} \n` +
 
                 `\nGlass Covering: ${RequestObj["glassCovering"]} \n` +
                 `Glass Covering price: £${glassCoveringPrice} \n\n` +
@@ -371,7 +371,7 @@ const imageAndPdfGenerator = async (req, res) => {
             clientDoc.text(
                 `Patishon Height: ${RequestObj["wallHeight"]} \n` +
                 `Room Width: ${RequestObj["wallLength"]} \n` +
-                `*Recommended opening = (the calculation should be the overall width of the panels and doors + 20mm) \n` +
+                `Recommended Opening Width: ${parseInt(sizesString) + 20} mm \n` +
 
                 `\nGlass Covering: ${RequestObj["glassCovering"]} \n` +
                 `Glass Covering price: £${glassCoveringPrice} \n\n` +
