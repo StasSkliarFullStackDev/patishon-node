@@ -99,6 +99,7 @@ const imageAndPdfGenerator = async (req, res) => {
     });
 
     const browser = await launch({
+        executablePath: '/app/.apt/usr/bin/google-chrome',
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: true,
     });
