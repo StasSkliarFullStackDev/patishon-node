@@ -61,7 +61,7 @@ const imageAndPdfGenerator = async (req, res) => {
 
     const data = {
         orderId,
-        productType: RequestObj["product"].name,
+        productType: RequestObj["product"].name === 'Fixed of two wall' ? RequestObj["product"].name + 's' : RequestObj["product"].name,
         patishonHeight: RequestObj["wallHeight"],
         recommendedWidth: recommendedOpeningWidth,
         glassCovering: RequestObj["glassCovering"],
