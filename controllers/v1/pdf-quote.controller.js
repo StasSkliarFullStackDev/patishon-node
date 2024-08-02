@@ -98,7 +98,10 @@ const imageAndPdfGenerator = async (req, res) => {
         });
     });
 
-    const browser = await launch();
+    const browser = await launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true,
+    });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
     await new Promise(resolve => setTimeout(resolve, 1000));
