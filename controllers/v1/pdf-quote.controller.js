@@ -46,12 +46,12 @@ const imageAndPdfGenerator = async (req, res) => {
     let totalPrice;
     if (!RequestObj["skipThirdStep"]) {
         totalPrice = panelsPrice +
-            (RequestObj["wallLength"] === (RequestObj["newDoor"].doorSize + panelsPrice) ? 20 : 0) +
+            20 +
             RequestObj["newDoor"].doorPrice +
             glassCoveringPrice;
     } else {
         totalPrice = panelsPrice +
-            (RequestObj["wallLength"] === panelsPrice ? 20 : 0) +
+            20 +
             glassCoveringPrice;
     }
 
