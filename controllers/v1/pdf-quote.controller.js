@@ -31,13 +31,9 @@ const imageAndPdfGenerator = async (req, res) => {
 
     let recommendedOpeningWidth;
     if ((RequestObj["skipThirdStep"] === false) && RequestObj["newDoor"]?.doorSize) {
-        if (RequestObj["wallLength"] === (RequestObj["newDoor"]?.doorSize + panelsLength)) {
-            recommendedOpeningWidth = panelsLength + RequestObj["newDoor"]?.doorSize + 20
-        }
+        recommendedOpeningWidth = panelsLength + RequestObj["newDoor"]?.doorSize + 20
     } else {
-        if (RequestObj["wallLength"] === panelsLength) {
-            recommendedOpeningWidth = panelsLength + 20
-        }
+        recommendedOpeningWidth = panelsLength + 20
     }
 
     let patishonWidth;
