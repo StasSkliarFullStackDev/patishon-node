@@ -52,7 +52,7 @@ const imageAndPdfGenerator = async (req, res) => {
     } else {
         totalPrice = panelsPrice +
             20 +
-            glassCoveringPrice;
+            glassCoveringPrice
     }
 
     const data = {
