@@ -147,25 +147,8 @@
         <div class="body-col second-col">
             <div class="total">
                 <b class="total__label">Total: </b>
-
-                <% if (skipThirdStep) { %>
-                    <div class="total__info">
-                        Panels Price + <br>
-                        Glass Covering Price + <br>
-                        VAT
-                    </div>
-                <% } %>
-
-                <% if (!skipThirdStep) { %>
-                    <div class="total__info">
-                        Panels Price + <br>
-                        Glass Covering Price + <br>
-                        Door Price + <br>
-                        VAT
-                    </div>
-                <% } %>
-
                 <div class="total__value">£ <%= totalPrice %></div>
+                <div class="total__info">(including delivery and VAT)</div>
             </div>
         </div>
     </div>
