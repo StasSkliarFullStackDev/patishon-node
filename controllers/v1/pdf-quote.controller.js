@@ -3,6 +3,14 @@ const path = require('path');
 const fs = require('fs');
 const glassCoveringSchema = require("../../models/glassCovering.model");
 const {model} = require("../../models/cart.model");
+
+const panelsPriceList = {
+    150: 108,
+    350: 252,
+    550: 396,
+    750: 540
+}
+
 const {createSuccessResponse} = require("../../helpers/utils");
 
 const imageAndPdfGenerator = async (req, res) => {
@@ -17,7 +25,7 @@ const imageAndPdfGenerator = async (req, res) => {
     const sizesString = panelSizes.join(", ");
     const panelsPrice = RequestObj["newPanels"]
         .filter(item => item.name.toLowerCase() !== "door")
-        .reduce((sum, item) => sum + item.value, 0);
+        .reduce((sum, item) => sum + panelsPriceList[item.value], 0);
 
     const panelsLength = RequestObj["newPanels"]
         .filter(item => item.name.toLowerCase() !== "door")
@@ -67,7 +75,7 @@ const imageAndPdfGenerator = async (req, res) => {
         frameColor: RequestObj["frameColorCode"],
         panelSizesString: sizesString,
         panelPrice: panelsPrice,
-        totalPrice,
+        totalPrice: Math.round(totalPrice),
         mainImg: RequestObj["newImage"],
         mainImgWidth: RequestObj["newImageWidth"],
         mainImgHeight: RequestObj["newImageHeight"],
@@ -96,7 +104,6 @@ const imageAndPdfGenerator = async (req, res) => {
     });
 
     const browser = await launch({
-        executablePath: '/app/.apt/usr/bin/google-chrome',
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: true,
     });
