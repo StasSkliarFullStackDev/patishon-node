@@ -62,7 +62,7 @@ const imageAndPdfGenerator = async (req, res) => {
             20 +
             glassCoveringPrice;
     }
-    totalPrice = totalPrice + ((totalPrice + 300) * 20 / 100)
+    totalPrice = (totalPrice + 300) * 1.2
 
     const data = {
         orderId,
