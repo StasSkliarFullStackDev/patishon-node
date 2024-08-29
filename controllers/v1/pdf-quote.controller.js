@@ -2,6 +2,7 @@ const {launch} = require("puppeteer");
 const path = require('path');
 const fs = require('fs');
 const glassCoveringSchema = require("../../models/glassCovering.model");
+const panelSchema = require("../../models/panels.model");
 const {model} = require("../../models/cart.model");
 
 const panelsPriceList = {
@@ -31,12 +32,6 @@ const imageAndPdfGenerator = async (req, res) => {
         .filter(item => item.name.toLowerCase() !== "door")
         .reduce((sum, item) => sum + item.value, 0);
 
-    let glassCoveringPrice = 0
-    const glassCoveringList = await glassCoveringSchema.find({ glassType: 'clear' })
-    if (glassCoveringList) {
-        glassCoveringPrice = glassCoveringList[0].price * panelsLength
-    }
-
     let recommendedOpeningWidth;
     if ((RequestObj["skipThirdStep"] === false) && RequestObj["newDoor"]?.doorSize) {
         recommendedOpeningWidth = panelsLength + RequestObj["newDoor"]?.doorSize + 20
@@ -51,18 +46,31 @@ const imageAndPdfGenerator = async (req, res) => {
         patishonWidth = panelsLength + 20
     }
 
-    let totalPrice;
+    let totalPrice = 0;
+    const deliveryPrice = 300 + 75;
+    const VAT = 1.2;
+    const leftAndRightIdent = 20;
+    let doorPrice = 0;
     if (!RequestObj["skipThirdStep"]) {
-        totalPrice = panelsPrice +
-            20 +
-            RequestObj["newDoor"].doorPrice +
-            glassCoveringPrice;
-    } else {
-        totalPrice = panelsPrice +
-            20 +
-            glassCoveringPrice;
+        doorPrice = RequestObj["newDoor"].doorPrice
     }
-    totalPrice = (totalPrice + 300) * 1.2
+    let glassCoveringPrice = 0
+    const glassCoveringList = await glassCoveringSchema.find({ glassType: 'clear' })
+    if (glassCoveringList) {
+        glassCoveringPrice = glassCoveringList[0].price * panelsLength
+    }
+    const panelSchemaEntity = await panelSchema.find({})
+    let panelPricePerMM = 0;
+    let panelPricePerPanel = 0;
+    if (panelSchemaEntity) {
+        panelPricePerMM = panelSchemaEntity[0].panelPricePermm
+        panelPricePerPanel = panelSchemaEntity[0].perPanelPrice
+    }
+    const headTrack = patishonWidth * panelPricePerMM;
+    const floorTrack = RequestObj["wallHeight"] * panelPricePerMM;
+    const cappingChannel= panelSizes.length * panelPricePerPanel;
+
+    totalPrice = (panelsPrice + leftAndRightIdent + doorPrice + glassCoveringPrice + deliveryPrice + headTrack + floorTrack + cappingChannel) * VAT
 
     const data = {
         orderId,
@@ -104,7 +112,6 @@ const imageAndPdfGenerator = async (req, res) => {
     });
 
     const browser = await launch({
-        executablePath: '/app/.apt/usr/bin/google-chrome',
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: true,
     });
