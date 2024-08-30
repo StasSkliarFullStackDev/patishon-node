@@ -49,7 +49,6 @@ const imageAndPdfGenerator = async (req, res) => {
     let totalPrice = 0;
     const deliveryPrice = 300 + 75;
     const VAT = 1.2;
-    const leftAndRightIdent = 20;
     let doorPrice = 0;
     if (!RequestObj["skipThirdStep"]) {
         doorPrice = RequestObj["newDoor"].doorPrice
@@ -66,11 +65,10 @@ const imageAndPdfGenerator = async (req, res) => {
         panelPricePerMM = panelSchemaEntity[0].panelPricePermm
         panelPricePerPanel = panelSchemaEntity[0].perPanelPrice
     }
-    const headTrack = patishonWidth * panelPricePerMM;
-    const floorTrack = RequestObj["wallHeight"] * panelPricePerMM;
+    const track = patishonWidth * panelPricePerMM;
     const cappingChannel= panelSizes.length * panelPricePerPanel;
 
-    totalPrice = (panelsPrice + leftAndRightIdent + doorPrice + glassCoveringPrice + deliveryPrice + headTrack + floorTrack + cappingChannel) * VAT
+    totalPrice = (panelsPrice + doorPrice + glassCoveringPrice + deliveryPrice + track + cappingChannel) * VAT
 
     const data = {
         orderId,
