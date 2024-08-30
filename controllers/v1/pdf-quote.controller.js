@@ -56,7 +56,7 @@ const imageAndPdfGenerator = async (req, res) => {
     let glassCoveringPrice = 0
     const glassCoveringList = await glassCoveringSchema.find({ glassType: 'clear' })
     if (glassCoveringList) {
-        glassCoveringPrice = glassCoveringList[0].price * panelsLength
+        glassCoveringPrice = glassCoveringList[0].price * (panelsLength + RequestObj["newDoor"]?.doorSize)
     }
     const panelSchemaEntity = await panelSchema.find({})
     let panelPricePerMM = 0;
