@@ -82,7 +82,7 @@ const imageAndPdfGenerator = async (req, res) => {
         frameColor: RequestObj["frameColorCode"],
         panelSizesString: sizesString,
         panelPrice: panelsPrice,
-        totalPrice: Math.round(totalPrice),
+        totalPrice: Number(totalPrice.toFixed(2)),
         mainImg: RequestObj["newImage"],
         mainImgWidth: RequestObj["newImageWidth"],
         mainImgHeight: RequestObj["newImageHeight"],
