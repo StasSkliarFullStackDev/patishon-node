@@ -6,10 +6,10 @@ const panelSchema = require("../../models/panels.model");
 const {model} = require("../../models/cart.model");
 
 const panelsPriceList = {
-    150: 324.57,
-    350: 478.94,
-    550: 647,
-    750: 796
+    150: 326.89,
+    350: 484.37,
+    550: 655.29,
+    750: 807.61
 }
 
 const {createSuccessResponse} = require("../../helpers/utils");
