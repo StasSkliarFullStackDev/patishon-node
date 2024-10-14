@@ -47,7 +47,7 @@ const imageAndPdfGenerator = async (req, res) => {
     }
 
     let totalPrice = 0;
-    const deliveryPrice = 300;
+    const deliveryPrice = 100;
     const VAT = 1.2;
     let doorPrice = 0;
     if (!RequestObj["skipThirdStep"]) {
