@@ -113,7 +113,6 @@ const imageAndPdfGenerator = async (req, res) => {
     const browser = await launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: true,
-        executablePath: '/app/.apt/usr/bin/google-chrome',
     });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
